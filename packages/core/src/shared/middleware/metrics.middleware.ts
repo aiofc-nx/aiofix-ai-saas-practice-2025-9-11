@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { PinoLoggerService, LogContext } from '@aiofix/logging';
 import { BaseMiddleware } from './base.middleware';
 import type {
   IMiddlewareRequest,
@@ -82,10 +83,12 @@ export class MetricsMiddleware extends BaseMiddleware {
   /**
    * 构造函数
    *
+   * @param logger 日志服务
    * @param config 中间件配置
    * @param priority 中间件优先级
    */
   constructor(
+    logger: PinoLoggerService,
     config: {
       enableMetrics?: boolean;
       collectCustomMetrics?: boolean;
@@ -93,28 +96,24 @@ export class MetricsMiddleware extends BaseMiddleware {
       historySize?: number;
       enableRealTimeMetrics?: boolean;
     } = {},
-    priority: number = 200
+    priority: number = 200,
   ) {
     super(
+      logger,
       'MetricsMiddleware',
       {
         enablePerformanceMonitoring: true,
         enableLogging: false,
+        collectCustomMetrics: config.collectCustomMetrics !== false,
+        exportInterval: config.exportInterval || 60000, // 1分钟
+        historySize: config.historySize || 1000,
         ...config,
       },
-      priority
+      priority,
     );
 
-    this.config = {
-      ...this.config,
-      collectCustomMetrics: config.collectCustomMetrics !== false,
-      exportInterval: config.exportInterval || 60000, // 1分钟
-      historySize: config.historySize || 1000,
-      enableRealTimeMetrics: config.enableRealTimeMetrics !== false,
-    };
-
     // 启动指标导出定时器
-    if (this.config.exportInterval > 0) {
+    if ((this.config as any).exportInterval > 0) {
       this.startMetricsExport();
     }
   }
@@ -129,7 +128,7 @@ export class MetricsMiddleware extends BaseMiddleware {
    */
   protected processRequest<T>(
     request: IMiddlewareRequest<T>,
-    next: () => Observable<IMiddlewareResponse<T>>
+    next: () => Observable<IMiddlewareResponse<T>>,
   ): Observable<IMiddlewareResponse<T>> {
     const startTime = new Date();
 
@@ -141,7 +140,7 @@ export class MetricsMiddleware extends BaseMiddleware {
       tap((response) => {
         // 收集响应指标
         this.collectResponseMetrics(request, response, startTime);
-      })
+      }),
     );
   }
 
@@ -154,7 +153,7 @@ export class MetricsMiddleware extends BaseMiddleware {
    */
   private collectRequestMetrics<T>(
     request: IMiddlewareRequest<T>,
-    startTime: Date
+    startTime: Date,
   ): void {
     this._metrics.totalRequests++;
 
@@ -184,7 +183,7 @@ export class MetricsMiddleware extends BaseMiddleware {
   private collectResponseMetrics<T>(
     request: IMiddlewareRequest<T>,
     response: IMiddlewareResponse<T>,
-    startTime: Date
+    startTime: Date,
   ): void {
     const processingTime = new Date().getTime() - startTime.getTime();
 
@@ -201,11 +200,11 @@ export class MetricsMiddleware extends BaseMiddleware {
       this._metrics.totalProcessingTime / this._metrics.totalRequests;
     this._metrics.maxProcessingTime = Math.max(
       this._metrics.maxProcessingTime,
-      processingTime
+      processingTime,
     );
     this._metrics.minProcessingTime = Math.min(
       this._metrics.minProcessingTime,
-      processingTime
+      processingTime,
     );
 
     // 记录请求历史
@@ -217,7 +216,7 @@ export class MetricsMiddleware extends BaseMiddleware {
       this.collectCustomMetrics(`response_type_${request.type}`, 1);
       this.collectCustomMetrics(
         `processing_time_${request.type}`,
-        processingTime
+        processingTime,
       );
 
       if (response.success) {
@@ -230,7 +229,7 @@ export class MetricsMiddleware extends BaseMiddleware {
         if (response.error) {
           this.collectCustomMetrics(
             `error_class_${response.error.constructor.name}`,
-            1
+            1,
           );
         }
       }
@@ -248,7 +247,7 @@ export class MetricsMiddleware extends BaseMiddleware {
   private recordRequestHistory<T>(
     request: IMiddlewareRequest<T>,
     response: IMiddlewareResponse<T>,
-    processingTime: number
+    processingTime: number,
   ): void {
     const historyItem = {
       timestamp: new Date(),
@@ -301,7 +300,9 @@ export class MetricsMiddleware extends BaseMiddleware {
     const metrics = this.getMetrics();
 
     if (this.config.enableLogging) {
-      this.logger.debug('Metrics exported:', JSON.stringify(metrics, null, 2));
+      this.logger.debug('Metrics exported:', LogContext.PERFORMANCE, {
+        metrics,
+      });
     }
 
     // 这里可以添加导出到外部系统的逻辑
@@ -342,7 +343,7 @@ export class MetricsMiddleware extends BaseMiddleware {
     // 计算每分钟请求数和错误数
     const oneMinuteAgo = new Date(now.getTime() - 60000);
     const recentRequests = this._metrics.requestHistory.filter(
-      (req) => req.timestamp >= oneMinuteAgo
+      (req) => req.timestamp >= oneMinuteAgo,
     );
 
     const requestsPerMinute = recentRequests.length;

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { AsyncContext } from '../context';
+import { PinoLoggerService, LogContext } from '@aiofix/logging';
 import { BasePublisher } from './base-publisher';
 import type { ICommandPublisher, IPublisherConfig } from './publisher.types';
 
@@ -68,10 +69,11 @@ export class CommandPublisher<TCommand = any>
   /**
    * 构造函数
    *
+   * @param logger 日志服务
    * @param config 发布者配置
    */
-  constructor(config: IPublisherConfig = {}) {
-    super({
+  constructor(logger: PinoLoggerService, config: IPublisherConfig = {}) {
+    super(logger, {
       enableLogging: true,
       enableMetrics: true,
       enableRetry: false,
@@ -106,7 +108,7 @@ export class CommandPublisher<TCommand = any>
     // 记录命令发布成功
     if (this._config.enableLogging) {
       this.logger.debug(
-        `Successfully published command: ${this.getCommandName(command)}`
+        `Successfully published command: ${this.getCommandName(command)}`,
       );
     }
   }
@@ -137,7 +139,7 @@ export class CommandPublisher<TCommand = any>
     // 记录批量发布成功
     if (this._config.enableLogging) {
       this.logger.debug(
-        `Successfully published batch of ${commands.length} commands`
+        `Successfully published batch of ${commands.length} commands`,
       );
     }
   }
@@ -251,9 +253,11 @@ export class CommandPublisher<TCommand = any>
     try {
       return JSON.stringify(command, null, 2);
     } catch (error) {
-      this.logger.error('Failed to serialize command:', error);
+      this.logger.error('Failed to serialize command:', LogContext.SYSTEM, {
+        error,
+      });
       throw new Error(
-        `Failed to serialize command: ${(error as Error).message}`
+        `Failed to serialize command: ${(error as Error).message}`,
       );
     }
   }
@@ -268,15 +272,17 @@ export class CommandPublisher<TCommand = any>
    */
   deserializeCommand<T extends TCommand>(
     jsonString: string,
-    commandClass: new (...args: any[]) => T
+    commandClass: new (...args: any[]) => T,
   ): T {
     try {
       const data = JSON.parse(jsonString);
       return Object.assign(new commandClass() as any, data);
     } catch (error) {
-      this.logger.error('Failed to deserialize command:', error);
+      this.logger.error('Failed to deserialize command:', LogContext.SYSTEM, {
+        error,
+      });
       throw new Error(
-        `Failed to deserialize command: ${(error as Error).message}`
+        `Failed to deserialize command: ${(error as Error).message}`,
       );
     }
   }

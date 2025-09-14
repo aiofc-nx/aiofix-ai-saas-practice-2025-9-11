@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Observable, of } from 'rxjs';
 import { catchError, tap, timeout, mergeMap } from 'rxjs/operators';
+import { PinoLoggerService, LogContext } from '@aiofix/logging';
 import type {
   IMiddleware,
   IMiddlewareRequest,
@@ -70,7 +71,7 @@ import type {
 export abstract class BaseMiddleware<TRequest = any, TResponse = any>
   implements IMiddleware<TRequest, TResponse>
 {
-  protected readonly logger: Logger;
+  protected readonly logger: PinoLoggerService;
   protected readonly _stats = {
     requestCount: 0,
     successCount: 0,
@@ -82,16 +83,18 @@ export abstract class BaseMiddleware<TRequest = any, TResponse = any>
   /**
    * 构造函数
    *
+   * @param logger 日志服务
    * @param name 中间件名称
    * @param config 中间件配置
    * @param priority 中间件优先级
    */
   constructor(
+    logger: PinoLoggerService,
     public readonly name: string,
     public readonly config: IMiddlewareConfig = {},
-    public readonly priority: number = 0
+    public readonly priority: number = 0,
   ) {
-    this.logger = new Logger(name);
+    this.logger = logger;
 
     // 设置默认配置
     this.config = {
@@ -116,7 +119,7 @@ export abstract class BaseMiddleware<TRequest = any, TResponse = any>
    */
   handle(
     request: IMiddlewareRequest<TRequest>,
-    next: () => Observable<IMiddlewareResponse<TResponse>>
+    next: () => Observable<IMiddlewareResponse<TResponse>>,
   ): Observable<IMiddlewareResponse<TResponse>> {
     // 检查中间件是否启用
     if (!this.config.enabled) {
@@ -139,14 +142,14 @@ export abstract class BaseMiddleware<TRequest = any, TResponse = any>
       timeout(this.config.timeout || 30000),
       // 执行后处理
       mergeMap((response: IMiddlewareResponse<TResponse>) =>
-        this.postprocess(request, response)
+        this.postprocess(request, response),
       ),
       // 错误处理
       catchError((error) => this.handleError(error, request, startTime)),
       // 更新统计信息
       tap((response: IMiddlewareResponse<TResponse>) =>
-        this.updateStats(startTime, response.success)
-      )
+        this.updateStats(startTime, response.success),
+      ),
     );
   }
 
@@ -158,7 +161,7 @@ export abstract class BaseMiddleware<TRequest = any, TResponse = any>
    * @returns 预处理结果
    */
   protected preprocess(
-    request: IMiddlewareRequest<TRequest>
+    request: IMiddlewareRequest<TRequest>,
   ): Observable<void> {
     if (this.config.enableLogging) {
       this.logger.debug(`Preprocessing request: ${request.type}`);
@@ -177,7 +180,7 @@ export abstract class BaseMiddleware<TRequest = any, TResponse = any>
    */
   protected abstract processRequest(
     request: IMiddlewareRequest<TRequest>,
-    next: () => Observable<IMiddlewareResponse<TResponse>>
+    next: () => Observable<IMiddlewareResponse<TResponse>>,
   ): Observable<IMiddlewareResponse<TResponse>>;
 
   /**
@@ -190,7 +193,7 @@ export abstract class BaseMiddleware<TRequest = any, TResponse = any>
    */
   protected postprocess(
     request: IMiddlewareRequest<TRequest>,
-    response: IMiddlewareResponse<TResponse>
+    response: IMiddlewareResponse<TResponse>,
   ): Observable<IMiddlewareResponse<TResponse>> {
     if (this.config.enableLogging) {
       this.logger.debug(`Postprocessing request: ${request.type}`);
@@ -211,14 +214,15 @@ export abstract class BaseMiddleware<TRequest = any, TResponse = any>
   protected handleError(
     error: any,
     request: IMiddlewareRequest<TRequest>,
-    startTime: Date
+    startTime: Date,
   ): Observable<IMiddlewareResponse<TResponse>> {
     this._stats.errorCount++;
 
     if (this.config.enableErrorHandling) {
       this.logger.error(
         `Error in middleware ${this.name}: ${(error as Error).message}`,
-        (error as Error).stack
+        LogContext.SYSTEM,
+        { stack: (error as Error).stack },
       );
     }
 
@@ -256,7 +260,7 @@ export abstract class BaseMiddleware<TRequest = any, TResponse = any>
 
     if (this.config.enablePerformanceMonitoring) {
       this.logger.debug(
-        `Middleware ${this.name} processing time: ${processingTime}ms`
+        `Middleware ${this.name} processing time: ${processingTime}ms`,
       );
     }
   }
@@ -271,7 +275,7 @@ export abstract class BaseMiddleware<TRequest = any, TResponse = any>
    */
   protected executeNext(
     request: IMiddlewareRequest<TRequest>,
-    next: () => Observable<IMiddlewareResponse<TResponse>>
+    next: () => Observable<IMiddlewareResponse<TResponse>>,
   ): Observable<IMiddlewareResponse<TResponse>> {
     return next();
   }
@@ -288,7 +292,7 @@ export abstract class BaseMiddleware<TRequest = any, TResponse = any>
   protected createSuccessResponse(
     data?: TResponse,
     processingTime?: number,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): IMiddlewareResponse<TResponse> {
     return {
       data,
@@ -314,7 +318,7 @@ export abstract class BaseMiddleware<TRequest = any, TResponse = any>
   protected createErrorResponse(
     error: Error,
     processingTime?: number,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): IMiddlewareResponse<TResponse> {
     return {
       error,

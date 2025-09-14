@@ -52,6 +52,12 @@
  */
 
 import { Module } from '@nestjs/common';
+import { LoggingModule } from '@aiofix/logging';
+import { ConfigModule } from '@aiofix/config';
+import { CacheModule } from '@aiofix/cache';
+import { DatabaseModule } from '@aiofix/database';
+import { CoreConfigService } from './services/core-config.service';
+import { CoreCacheService } from './services/core-cache.service';
 
 /**
  * Core模块
@@ -96,5 +102,18 @@ import { Module } from '@nestjs/common';
  * }
  * ```
  */
-@Module({})
+@Module({
+  imports: [LoggingModule, ConfigModule, CacheModule, DatabaseModule],
+  providers: [CoreConfigService, CoreCacheService],
+  exports: [
+    // 导出基础设施服务供其他模块使用
+    LoggingModule,
+    ConfigModule,
+    CacheModule,
+    DatabaseModule,
+    // 导出Core服务
+    CoreConfigService,
+    CoreCacheService,
+  ],
+})
 export class CoreModule {}

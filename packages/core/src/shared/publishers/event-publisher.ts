@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { AsyncContext } from '../context';
+import { PinoLoggerService, LogContext } from '@aiofix/logging';
 import { BasePublisher } from './base-publisher';
 import type { IEventPublisher, IPublisherConfig } from './publisher.types';
 
@@ -70,8 +71,8 @@ export class EventPublisher<TEvent = any>
    *
    * @param config 发布者配置
    */
-  constructor(config: IPublisherConfig = {}) {
-    super({
+  constructor(logger: PinoLoggerService, config: IPublisherConfig = {}) {
+    super(logger, {
       enableLogging: true,
       enableMetrics: true,
       enableRetry: true,
@@ -106,7 +107,7 @@ export class EventPublisher<TEvent = any>
     // 记录事件发布成功
     if (this._config.enableLogging) {
       this.logger.debug(
-        `Successfully published event: ${this.getEventName(event)}`
+        `Successfully published event: ${this.getEventName(event)}`,
       );
     }
   }
@@ -137,7 +138,7 @@ export class EventPublisher<TEvent = any>
     // 记录批量发布成功
     if (this._config.enableLogging) {
       this.logger.debug(
-        `Successfully published batch of ${events.length} events`
+        `Successfully published batch of ${events.length} events`,
       );
     }
   }
@@ -268,7 +269,9 @@ export class EventPublisher<TEvent = any>
     try {
       return JSON.stringify(event, null, 2);
     } catch (error) {
-      this.logger.error('Failed to serialize event:', error);
+      this.logger.error('Failed to serialize event:', LogContext.EVENT, {
+        error,
+      });
       throw new Error(`Failed to serialize event: ${(error as Error).message}`);
     }
   }
@@ -283,15 +286,17 @@ export class EventPublisher<TEvent = any>
    */
   deserializeEvent<T extends TEvent>(
     jsonString: string,
-    eventClass: new (...args: any[]) => T
+    eventClass: new (...args: any[]) => T,
   ): T {
     try {
       const data = JSON.parse(jsonString);
       return Object.assign(new eventClass() as any, data);
     } catch (error) {
-      this.logger.error('Failed to deserialize event:', error);
+      this.logger.error('Failed to deserialize event:', LogContext.EVENT, {
+        error,
+      });
       throw new Error(
-        `Failed to deserialize event: ${(error as Error).message}`
+        `Failed to deserialize event: ${(error as Error).message}`,
       );
     }
   }

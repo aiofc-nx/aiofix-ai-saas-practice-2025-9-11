@@ -12,18 +12,16 @@ export * from './types';
 
 // 装饰器
 export * from './decorators';
+export * from './decorators/cache.decorator';
+
+// 拦截器
+export * from './interceptors/core-cache.interceptor';
 
 // 异常类
 export * from './exceptions';
 
-// 工具函数
-export * from './utils';
-
-// 验证器
-export * from './validators';
-
-// 常量
-export * from './constants';
+// 工具函数 - 只导出非冲突的类
+export { TenantContextUtils } from './utils/tenant.utils';
 
 // 异步上下文
 export * from './context';

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { AsyncContext } from '../context';
+import { PinoLoggerService, LogContext } from '@aiofix/logging';
 import { BasePublisher } from './base-publisher';
 import type { IQueryPublisher, IPublisherConfig } from './publisher.types';
 
@@ -70,8 +71,8 @@ export class QueryPublisher<TQuery = any>
    *
    * @param config 发布者配置
    */
-  constructor(config: IPublisherConfig = {}) {
-    super({
+  constructor(logger: PinoLoggerService, config: IPublisherConfig = {}) {
+    super(logger, {
       enableLogging: true,
       enableMetrics: true,
       enableRetry: false,
@@ -106,7 +107,7 @@ export class QueryPublisher<TQuery = any>
     // 记录查询发布成功
     if (this._config.enableLogging) {
       this.logger.debug(
-        `Successfully published query: ${this.getQueryName(query)}`
+        `Successfully published query: ${this.getQueryName(query)}`,
       );
     }
   }
@@ -137,7 +138,7 @@ export class QueryPublisher<TQuery = any>
     // 记录批量发布成功
     if (this._config.enableLogging) {
       this.logger.debug(
-        `Successfully published batch of ${queries.length} queries`
+        `Successfully published batch of ${queries.length} queries`,
       );
     }
   }
@@ -253,7 +254,9 @@ export class QueryPublisher<TQuery = any>
     try {
       return JSON.stringify(query, null, 2);
     } catch (error) {
-      this.logger.error('Failed to serialize query:', error);
+      this.logger.error('Failed to serialize query:', LogContext.BUSINESS, {
+        error,
+      });
       throw new Error(`Failed to serialize query: ${(error as Error).message}`);
     }
   }
@@ -268,15 +271,17 @@ export class QueryPublisher<TQuery = any>
    */
   deserializeQuery<T extends TQuery>(
     jsonString: string,
-    queryClass: new (...args: any[]) => T
+    queryClass: new (...args: any[]) => T,
   ): T {
     try {
       const data = JSON.parse(jsonString);
       return Object.assign(new queryClass() as any, data);
     } catch (error) {
-      this.logger.error('Failed to deserialize query:', error);
+      this.logger.error('Failed to deserialize query:', LogContext.BUSINESS, {
+        error,
+      });
       throw new Error(
-        `Failed to deserialize query: ${(error as Error).message}`
+        `Failed to deserialize query: ${(error as Error).message}`,
       );
     }
   }

@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { PinoLoggerService, LogContext } from '@aiofix/logging';
+import { CoreConfigService } from '../../services/core-config.service';
 import { BaseMiddleware } from './base.middleware';
 import type {
   IMiddlewareRequest,
@@ -57,10 +59,14 @@ export class LoggingMiddleware extends BaseMiddleware {
   /**
    * 构造函数
    *
-   * @param config 中间件配置
+   * @param logger 日志服务
+   * @param configService Core配置服务
+   * @param config 中间件配置覆盖
    * @param priority 中间件优先级
    */
   constructor(
+    private readonly pinoLogger: PinoLoggerService,
+    private readonly configService: CoreConfigService,
     config: {
       enableLogging?: boolean;
       logLevel?: 'debug' | 'info' | 'warn' | 'error';
@@ -68,25 +74,34 @@ export class LoggingMiddleware extends BaseMiddleware {
       logRequestData?: boolean;
       logResponseData?: boolean;
     } = {},
-    priority: number = 100
+    priority: number = 100,
   ) {
+    // 从配置服务获取中间件配置
+    const middlewareConfig = configService.getMiddlewareConfig();
+
     super(
+      pinoLogger,
       'LoggingMiddleware',
       {
-        enableLogging: true,
+        enableLogging: middlewareConfig.enableLogging,
         enablePerformanceMonitoring: true,
+        logLevel: config.logLevel || middlewareConfig.logLevel,
+        maskSensitiveData:
+          config.maskSensitiveData !== undefined
+            ? config.maskSensitiveData
+            : middlewareConfig.maskSensitiveData,
+        logRequestData:
+          config.logRequestData !== undefined
+            ? config.logRequestData
+            : middlewareConfig.logRequestData,
+        logResponseData:
+          config.logResponseData !== undefined
+            ? config.logResponseData
+            : middlewareConfig.logResponseData,
         ...config,
       },
-      priority
+      priority,
     );
-
-    this.config = {
-      ...this.config,
-      logLevel: config.logLevel || 'info',
-      maskSensitiveData: config.maskSensitiveData !== false,
-      logRequestData: config.logRequestData !== false,
-      logResponseData: config.logResponseData !== false,
-    };
   }
 
   /**
@@ -99,7 +114,7 @@ export class LoggingMiddleware extends BaseMiddleware {
    */
   protected processRequest<T>(
     request: IMiddlewareRequest<T>,
-    next: () => Observable<IMiddlewareResponse<T>>
+    next: () => Observable<IMiddlewareResponse<T>>,
   ): Observable<IMiddlewareResponse<T>> {
     const startTime = new Date();
 
@@ -111,7 +126,7 @@ export class LoggingMiddleware extends BaseMiddleware {
       tap((response) => {
         // 记录响应日志
         this.logResponse(request, response, startTime);
-      })
+      }),
     );
   }
 
@@ -150,7 +165,7 @@ export class LoggingMiddleware extends BaseMiddleware {
   private logResponse<T>(
     request: IMiddlewareRequest<T>,
     response: IMiddlewareResponse<T>,
-    startTime: Date
+    startTime: Date,
   ): void {
     const endTime = new Date();
     const processingTime = endTime.getTime() - startTime.getTime();
@@ -183,28 +198,39 @@ export class LoggingMiddleware extends BaseMiddleware {
   /**
    * 根据级别记录日志
    *
-   * @description 根据配置的日志级别记录日志
+   * @description 根据配置的日志级别记录日志，使用统一的PinoLoggerService
    * @param data 日志数据
    */
   private logByLevel(data: any): void {
     const logLevel = this.config.logLevel || 'info';
-    const message = JSON.stringify(data, null, 2);
+    const message =
+      data.type === 'REQUEST'
+        ? `Request: ${data.requestType}`
+        : `Response: ${data.requestType}`;
+
+    // 使用PinoLoggerService的上下文方法
+    const childLogger = this.pinoLogger.child(LogContext.SYSTEM, {
+      requestId: data.requestId,
+      tenantId: data.tenantId,
+      userId: data.userId,
+      processingTime: data.processingTime,
+    });
 
     switch (logLevel) {
       case 'debug':
-        this.logger.debug(message);
+        childLogger.debug(message, data);
         break;
       case 'info':
-        this.logger.log(message);
+        childLogger.info(message, data);
         break;
       case 'warn':
-        this.logger.warn(message);
+        childLogger.warn(message, data);
         break;
       case 'error':
-        this.logger.error(message);
+        childLogger.error(message, data);
         break;
       default:
-        this.logger.log(message);
+        childLogger.info(message, data);
     }
   }
 

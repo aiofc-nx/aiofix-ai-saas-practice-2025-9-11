@@ -32,6 +32,10 @@
   "author": "Aiofix Team",
   "license": "MIT",
   "dependencies": {
+    "@aiofix/logging": "workspace:*",
+    "@aiofix/config": "workspace:*",
+    "@aiofix/cache": "workspace:*",
+    "@aiofix/database": "workspace:*",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "reflect-metadata": "^0.2.1",

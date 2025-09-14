@@ -1,4 +1,6 @@
 import { Subject, Observable } from 'rxjs';
+import { Injectable } from '@nestjs/common';
+import { PinoLoggerService } from '@aiofix/logging';
 import { UnhandledExceptionInfo } from './cqrs-exceptions';
 
 /**
@@ -55,8 +57,13 @@ import { UnhandledExceptionInfo } from './cqrs-exceptions';
  *
  * @since 1.0.0
  */
+@Injectable()
 export class UnhandledExceptionBus {
   private readonly exceptionSubject = new Subject<UnhandledExceptionInfo>();
+
+  constructor(private readonly logger: PinoLoggerService) {
+    // 可以在这里添加异常日志记录的逻辑
+  }
 
   /**
    * 获取异常流
@@ -95,13 +102,13 @@ export class UnhandledExceptionBus {
       userId?: string;
       tenantId?: string;
       requestId?: string;
-    }
+    },
   ): void {
     this.publish(
       new UnhandledExceptionInfo(exception, 'command', {
         commandType,
         ...context,
-      })
+      }),
     );
   }
 
@@ -122,13 +129,13 @@ export class UnhandledExceptionBus {
       userId?: string;
       tenantId?: string;
       requestId?: string;
-    }
+    },
   ): void {
     this.publish(
       new UnhandledExceptionInfo(exception, 'query', {
         queryType,
         ...context,
-      })
+      }),
     );
   }
 
@@ -149,13 +156,13 @@ export class UnhandledExceptionBus {
       userId?: string;
       tenantId?: string;
       requestId?: string;
-    }
+    },
   ): void {
     this.publish(
       new UnhandledExceptionInfo(exception, 'event', {
         eventType,
         ...context,
-      })
+      }),
     );
   }
 

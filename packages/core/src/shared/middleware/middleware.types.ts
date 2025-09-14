@@ -78,7 +78,7 @@ export interface IMiddleware<TRequest = any, TResponse = any> {
    */
   handle(
     request: IMiddlewareRequest<TRequest>,
-    next: () => Observable<IMiddlewareResponse<TResponse>>
+    next: () => Observable<IMiddlewareResponse<TResponse>>,
   ): Observable<IMiddlewareResponse<TResponse>>;
 }
 
@@ -102,6 +102,20 @@ export interface IMiddlewareConfig {
   retryCount?: number;
   /** 重试延迟（毫秒） */
   retryDelay?: number;
+  /** 日志级别 */
+  logLevel?: 'debug' | 'info' | 'warn' | 'error';
+  /** 是否脱敏敏感数据 */
+  maskSensitiveData?: boolean;
+  /** 是否记录请求数据 */
+  logRequestData?: boolean;
+  /** 是否记录响应数据 */
+  logResponseData?: boolean;
+  /** 导出间隔（毫秒） */
+  exportInterval?: number;
+  /** 是否收集自定义指标 */
+  collectCustomMetrics?: boolean;
+  /** 历史记录大小 */
+  historySize?: number;
   /** 自定义配置 */
   custom?: Record<string, any>;
 }
@@ -138,7 +152,7 @@ export interface IMiddlewareChain<TRequest = any, TResponse = any> {
    * @returns 响应对象
    */
   execute(
-    request: IMiddlewareRequest<TRequest>
+    request: IMiddlewareRequest<TRequest>,
   ): Observable<IMiddlewareResponse<TResponse>>;
 
   /**
@@ -232,7 +246,7 @@ export interface IMiddlewareManager {
    */
   createChain(
     names: string[],
-    config?: IMiddlewareChainConfig
+    config?: IMiddlewareChainConfig,
   ): IMiddlewareChain;
 
   /**

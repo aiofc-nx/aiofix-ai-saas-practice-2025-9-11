@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { PinoLoggerService } from '@aiofix/logging';
+import { CoreConfigService } from '../../services/core-config.service';
 import { CommandPublisher } from './command-publisher';
 import { EventPublisher } from './event-publisher';
 import { QueryPublisher } from './query-publisher';
@@ -68,43 +70,33 @@ export class PublisherFactory implements IPublisherFactory {
   /**
    * 构造函数
    *
+   * @param logger 日志服务
+   * @param configService Core配置服务
    * @param defaultConfig 全局默认配置
    */
-  constructor(defaultConfig: IPublisherConfig = {}) {
+  constructor(
+    private readonly logger: PinoLoggerService,
+    private readonly configService: CoreConfigService,
+    defaultConfig: IPublisherConfig = {},
+  ) {
+    // 从配置服务获取默认配置
+    const commandConfig = this.configService.getCommandBusConfig();
+    const queryConfig = this.configService.getQueryBusConfig();
+    const eventConfig = this.configService.getEventBusConfig();
+
     // 设置默认配置
     this.setDefaultConfig('command', {
-      enableLogging: true,
-      enableMetrics: true,
-      enableRetry: false,
-      maxRetries: 3,
-      retryDelay: 1000,
-      enableBatching: true,
-      batchSize: 50,
-      batchDelay: 100,
+      ...commandConfig,
       ...defaultConfig,
     });
 
     this.setDefaultConfig('query', {
-      enableLogging: true,
-      enableMetrics: true,
-      enableRetry: false,
-      maxRetries: 3,
-      retryDelay: 1000,
-      enableBatching: true,
-      batchSize: 100,
-      batchDelay: 50,
+      ...queryConfig,
       ...defaultConfig,
     });
 
     this.setDefaultConfig('event', {
-      enableLogging: true,
-      enableMetrics: true,
-      enableRetry: true,
-      maxRetries: 3,
-      retryDelay: 1000,
-      enableBatching: true,
-      batchSize: 200,
-      batchDelay: 50,
+      ...eventConfig,
       ...defaultConfig,
     });
   }
@@ -117,7 +109,7 @@ export class PublisherFactory implements IPublisherFactory {
    * @returns 命令发布者实例
    */
   createCommandPublisher<TCommand = any>(
-    config?: IPublisherConfig
+    config?: IPublisherConfig,
   ): CommandPublisher<TCommand> {
     const mergedConfig = this.mergeConfig('command', config);
     const cacheKey = this.generateCacheKey('command', mergedConfig);
@@ -128,7 +120,7 @@ export class PublisherFactory implements IPublisherFactory {
     }
 
     // 创建新实例
-    const publisher = new CommandPublisher<TCommand>(mergedConfig);
+    const publisher = new CommandPublisher<TCommand>(this.logger, mergedConfig);
     this._publishers.set(cacheKey, publisher);
 
     return publisher;
@@ -142,7 +134,7 @@ export class PublisherFactory implements IPublisherFactory {
    * @returns 查询发布者实例
    */
   createQueryPublisher<TQuery = any>(
-    config?: IPublisherConfig
+    config?: IPublisherConfig,
   ): QueryPublisher<TQuery> {
     const mergedConfig = this.mergeConfig('query', config);
     const cacheKey = this.generateCacheKey('query', mergedConfig);
@@ -153,7 +145,7 @@ export class PublisherFactory implements IPublisherFactory {
     }
 
     // 创建新实例
-    const publisher = new QueryPublisher<TQuery>(mergedConfig);
+    const publisher = new QueryPublisher<TQuery>(this.logger, mergedConfig);
     this._publishers.set(cacheKey, publisher);
 
     return publisher;
@@ -167,7 +159,7 @@ export class PublisherFactory implements IPublisherFactory {
    * @returns 事件发布者实例
    */
   createEventPublisher<TEvent = any>(
-    config?: IPublisherConfig
+    config?: IPublisherConfig,
   ): EventPublisher<TEvent> {
     const mergedConfig = this.mergeConfig('event', config);
     const cacheKey = this.generateCacheKey('event', mergedConfig);
@@ -178,7 +170,7 @@ export class PublisherFactory implements IPublisherFactory {
     }
 
     // 创建新实例
-    const publisher = new EventPublisher<TEvent>(mergedConfig);
+    const publisher = new EventPublisher<TEvent>(this.logger, mergedConfig);
     this._publishers.set(cacheKey, publisher);
 
     return publisher;
@@ -279,7 +271,7 @@ export class PublisherFactory implements IPublisherFactory {
    */
   private mergeConfig(
     type: string,
-    config?: IPublisherConfig
+    config?: IPublisherConfig,
   ): IPublisherConfig {
     const defaultConfig = this._defaultConfigs.get(type) || {};
     return {

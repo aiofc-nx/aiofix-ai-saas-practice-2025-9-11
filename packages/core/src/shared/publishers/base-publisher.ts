@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type { Observable } from 'rxjs';
 import { Subject } from 'rxjs';
+import { PinoLoggerService, LogContext } from '@aiofix/logging';
 import { AsyncContext } from '../context';
 import type {
   IBasePublisher,
@@ -66,7 +67,7 @@ import type {
  */
 @Injectable()
 export abstract class BasePublisher<T> implements IBasePublisher<T> {
-  protected readonly logger = new Logger(this.constructor.name);
+  protected readonly logger: PinoLoggerService;
   protected readonly _subject$ = new Subject<T>();
   protected readonly _middleware: IPublisherMiddleware<T>[] = [];
   protected readonly _config: Required<IPublisherConfig>;
@@ -82,9 +83,11 @@ export abstract class BasePublisher<T> implements IBasePublisher<T> {
   /**
    * 构造函数
    *
+   * @param logger 日志服务
    * @param config 发布者配置
    */
-  constructor(config: IPublisherConfig = {}) {
+  constructor(logger: PinoLoggerService, config: IPublisherConfig = {}) {
+    this.logger = logger;
     this._config = {
       enableLogging: false,
       enableMetrics: false,
@@ -128,7 +131,7 @@ export abstract class BasePublisher<T> implements IBasePublisher<T> {
 
       if (this._config.enableLogging) {
         this.logger.debug(
-          `Successfully published item: ${this.getItemDescription(item)}`
+          `Successfully published item: ${this.getItemDescription(item)}`,
         );
       }
     } catch (error) {
@@ -142,7 +145,7 @@ export abstract class BasePublisher<T> implements IBasePublisher<T> {
       if (this._config.enableLogging) {
         this.logger.error(
           `Failed to publish item: ${this.getItemDescription(item)}`,
-          error
+          error,
         );
       }
 
@@ -171,7 +174,7 @@ export abstract class BasePublisher<T> implements IBasePublisher<T> {
 
       // 批量处理
       const processedItems = items.map((item) =>
-        this.processThroughMiddleware(item, context)
+        this.processThroughMiddleware(item, context),
       );
 
       // 批量发布到流
@@ -184,12 +187,12 @@ export abstract class BasePublisher<T> implements IBasePublisher<T> {
       this._stats.successfulPublished += items.length;
       this._stats.totalPublished += items.length;
       this._stats.averageLatency = this.calculateAverageLatency(
-        Date.now() - startTime
+        Date.now() - startTime,
       );
 
       if (this._config.enableLogging) {
         this.logger.debug(
-          `Successfully published batch of ${items.length} items`
+          `Successfully published batch of ${items.length} items`,
         );
       }
     } catch (error) {
@@ -200,7 +203,7 @@ export abstract class BasePublisher<T> implements IBasePublisher<T> {
       if (this._config.enableLogging) {
         this.logger.error(
           `Failed to publish batch of ${items.length} items`,
-          error
+          error,
         );
       }
 
@@ -333,7 +336,7 @@ export abstract class BasePublisher<T> implements IBasePublisher<T> {
         processedItem = middleware.beforePublish(
           processedItem,
           context,
-          () => processedItem
+          () => processedItem,
         );
       }
     }
@@ -354,7 +357,9 @@ export abstract class BasePublisher<T> implements IBasePublisher<T> {
         try {
           middleware.afterPublish(item, context, () => {});
         } catch (error) {
-          this.logger.error('Error in afterPublish hook:', error);
+          this.logger.error('Error in afterPublish hook:', LogContext.SYSTEM, {
+            error,
+          });
         }
       }
     }
@@ -371,14 +376,16 @@ export abstract class BasePublisher<T> implements IBasePublisher<T> {
   protected callErrorHooks(
     item: T,
     error: Error,
-    context?: AsyncContext
+    context?: AsyncContext,
   ): void {
     for (const middleware of this._middleware) {
       if (middleware.onError) {
         try {
           middleware.onError(item, error, context, () => {});
         } catch (hookError) {
-          this.logger.error('Error in onError hook:', hookError);
+          this.logger.error('Error in onError hook:', LogContext.SYSTEM, {
+            error: hookError,
+          });
         }
       }
     }
