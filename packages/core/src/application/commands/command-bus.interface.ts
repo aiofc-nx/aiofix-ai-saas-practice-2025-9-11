@@ -1,5 +1,5 @@
 import { BaseCommand } from './base.command';
-import { Result } from '../../shared/types/common';
+import { ResultType } from '../../shared/types/common';
 
 /**
  * 命令总线接口
@@ -187,7 +187,7 @@ export interface ICommandBus {
    */
   execute<TCommand extends BaseCommand, TResult>(
     command: TCommand
-  ): Promise<Result<TResult>>;
+  ): Promise<ResultType<TResult>>;
 
   /**
    * 批量执行命令
@@ -250,7 +250,7 @@ export interface ICommandBus {
       transaction?: boolean;
       timeout?: number;
     }
-  ): Promise<Result<TResult>[]>;
+  ): Promise<ResultType<TResult>[]>;
 
   /**
    * 检查命令处理器是否已注册

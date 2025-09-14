@@ -6,5 +6,5 @@
  */
 
 export { BaseCommand } from './base.command';
-export { ICommandHandler } from './command-handler.interface';
-export { ICommandBus } from './command-bus.interface';
+export type { ICommandHandler } from './command-handler.interface';
+export type { ICommandBus } from './command-bus.interface';

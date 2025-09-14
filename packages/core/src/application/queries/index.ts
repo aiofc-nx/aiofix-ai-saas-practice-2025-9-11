@@ -6,5 +6,5 @@
  */
 
 export { BaseQuery } from './base.query';
-export { IQueryHandler } from './query-handler.interface';
-export { IQueryBus } from './query-bus.interface';
+export type { IQueryHandler } from './query-handler.interface';
+export type { IQueryBus } from './query-bus.interface';

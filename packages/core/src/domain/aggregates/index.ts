@@ -7,5 +7,6 @@
  * @since 1.0.0
  */
 
-export { BaseAggregateRoot, DomainEvent } from './base.aggregate-root';
+export { BaseAggregateRoot } from './base.aggregate-root';
+export type { DomainEvent } from './base.aggregate-root';
 export { TenantAwareAggregateRoot } from './tenant-aware.aggregate-root';

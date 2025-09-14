@@ -6,4 +6,4 @@
  * @since 1.0.0
  */
 
-export { IBaseSpecification } from './base.specification.interface';
+export type { IBaseSpecification } from './base.specification.interface';

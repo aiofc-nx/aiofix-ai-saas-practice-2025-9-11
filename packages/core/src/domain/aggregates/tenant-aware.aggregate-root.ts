@@ -1,4 +1,5 @@
 import { BaseAggregateRoot, DomainEvent } from './base.aggregate-root';
+import { BaseEntity } from '../entities/base.entity';
 import { EntityId } from '../value-objects/entity-id';
 import { TenantId } from '../value-objects/tenant-id';
 import { UserId } from '../value-objects/user-id';
@@ -210,7 +211,17 @@ export abstract class TenantAwareAggregateRoot extends BaseAggregateRoot {
    * }
    * ```
    */
-  protected updateTimestamp(updatedBy: UserId): void {
+  protected override updateTimestamp(): void {
+    super.updateTimestamp();
+  }
+
+  /**
+   * 更新时间戳并记录更新者
+   *
+   * @description 更新聚合根的时间戳，同时记录更新者信息
+   * @param updatedBy 更新者用户ID
+   */
+  protected updateTimestampWithUser(updatedBy: UserId): void {
     super.updateTimestamp();
     this._updatedBy = updatedBy;
   }
@@ -307,11 +318,14 @@ export abstract class TenantAwareAggregateRoot extends BaseAggregateRoot {
    * console.log(aggregate1.equals(aggregate2)); // true（相同ID和租户）
    * ```
    */
-  public equals(other: TenantAwareAggregateRoot): boolean {
+  public override equals(other: BaseEntity): boolean {
     if (!super.equals(other)) {
       return false;
     }
 
+    if (!(other instanceof TenantAwareAggregateRoot)) {
+      return false;
+    }
     return this._tenantId.equals(other._tenantId);
   }
 
@@ -327,7 +341,7 @@ export abstract class TenantAwareAggregateRoot extends BaseAggregateRoot {
    * console.log(aggregate.toString()); // 输出: "User(id: ..., tenantId: ..., version: 1)"
    * ```
    */
-  public toString(): string {
+  public override toString(): string {
     return `${
       this.constructor.name
     }(id: ${this.getId().toString()}, tenantId: ${this._tenantId.toString()}, version: ${this.getVersion()})`;
@@ -346,7 +360,7 @@ export abstract class TenantAwareAggregateRoot extends BaseAggregateRoot {
    * // 输出: { id: "...", tenantId: "...", createdBy: "...", updatedBy: "...", version: 1, ... }
    * ```
    */
-  public toJSON(): Record<string, any> {
+  public override toJSON(): Record<string, any> {
     return {
       ...super.toJSON(),
       tenantId: this._tenantId.toString(),

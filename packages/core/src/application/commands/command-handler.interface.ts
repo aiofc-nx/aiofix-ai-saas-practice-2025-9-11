@@ -1,5 +1,5 @@
 import { BaseCommand } from './base.command';
-import { Result } from '../../shared/types/common';
+import { ResultType } from '../../shared/types/common';
 
 /**
  * 命令处理器接口
@@ -158,7 +158,7 @@ export interface ICommandHandler<TCommand extends BaseCommand, TResult = void> {
    * }
    * ```
    */
-  handle(command: TCommand): Promise<Result<TResult>>;
+  handle(command: TCommand): Promise<ResultType<TResult>>;
 
   /**
    * 获取支持的命令类型

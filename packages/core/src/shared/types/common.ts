@@ -20,20 +20,20 @@
  * @example
  * ```typescript
  * // 成功结果
- * const successResult: Result<string> = Result.success('操作成功');
+ * const successResult: ResultType<string> = Result.success('操作成功');
  *
  * // 失败结果
- * const failureResult: Result<string> = Result.failure(new Error('操作失败'));
+ * const failureResult: ResultType<string> = Result.failure(new Error('操作失败'));
  *
  * // 检查结果
- * if (result.isSuccess()) {
- *   console.log(result.getValue()); // 获取成功值
+ * if (result.isSuccess) {
+ *   console.log(result.value); // 获取成功值
  * } else {
- *   console.error(result.getError()); // 获取错误信息
+ *   console.error(result.error); // 获取错误信息
  * }
  * ```
  */
-export type Result<T, E = Error> = SuccessResult<T> | FailureResult<E>;
+export type ResultType<T, E = Error> = SuccessResult<T> | FailureResult<E>;
 
 /**
  * 成功结果类型

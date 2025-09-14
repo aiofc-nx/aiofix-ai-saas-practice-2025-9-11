@@ -6,6 +6,6 @@
  * @since 1.0.0
  */
 
-export { IBaseRepository } from './base.repository.interface';
-export { ITenantAwareRepository } from './tenant-aware.repository.interface';
-export { IEventSourcingRepository } from './event-sourcing.repository.interface';
+export type { IBaseRepository } from './base.repository.interface';
+export type { ITenantAwareRepository } from './tenant-aware.repository.interface';
+export type { IEventSourcingRepository } from './event-sourcing.repository.interface';

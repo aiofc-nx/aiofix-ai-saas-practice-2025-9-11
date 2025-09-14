@@ -275,7 +275,7 @@ export abstract class BaseAggregateRoot extends BaseEntity {
    * }
    * ```
    */
-  protected updateTimestamp(): void {
+  protected override updateTimestamp(): void {
     super.updateTimestamp();
     this.incrementVersion();
   }
@@ -293,7 +293,7 @@ export abstract class BaseAggregateRoot extends BaseEntity {
    * // 输出: { id: "...", createdAt: "...", updatedAt: "...", version: 1 }
    * ```
    */
-  public toJSON(): Record<string, any> {
+  public override toJSON(): Record<string, any> {
     return {
       ...super.toJSON(),
       version: this._version,

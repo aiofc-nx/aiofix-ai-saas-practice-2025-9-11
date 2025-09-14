@@ -1,5 +1,4 @@
 import { BaseEntity } from '../entities/base.entity';
-import { EntityId } from '../value-objects/entity-id';
 
 /**
  * 基础工厂接口

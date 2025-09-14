@@ -5,5 +5,5 @@
  * @since 1.0.0
  */
 
-export { IEventHandler } from './event-handler.interface';
-export { IEventBus } from './event-bus.interface';
+export type { IEventHandler } from './event-handler.interface';
+export type { IEventBus } from './event-bus.interface';

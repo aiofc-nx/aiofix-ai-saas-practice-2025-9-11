@@ -1,5 +1,5 @@
 import { BaseQuery } from './base.query';
-import { Result } from '../../shared/types/common';
+import { ResultType } from '../../shared/types/common';
 
 /**
  * 查询处理器接口
@@ -158,7 +158,7 @@ export interface IQueryHandler<TQuery extends BaseQuery, TResult = any> {
    * }
    * ```
    */
-  handle(query: TQuery): Promise<Result<TResult>>;
+  handle(query: TQuery): Promise<ResultType<TResult>>;
 
   /**
    * 获取支持的查询类型

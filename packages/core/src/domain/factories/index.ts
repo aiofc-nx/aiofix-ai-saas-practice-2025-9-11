@@ -6,5 +6,5 @@
  * @since 1.0.0
  */
 
-export { IBaseFactory } from './base.factory.interface';
-export { IAggregateFactory } from './aggregate.factory.interface';
+export type { IBaseFactory } from './base.factory.interface';
+export type { IAggregateFactory } from './aggregate.factory.interface';

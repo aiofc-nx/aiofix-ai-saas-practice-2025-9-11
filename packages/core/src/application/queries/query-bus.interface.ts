@@ -1,5 +1,5 @@
 import { BaseQuery } from './base.query';
-import { Result } from '../../shared/types/common';
+import { ResultType } from '../../shared/types/common';
 
 /**
  * 查询总线接口
@@ -193,7 +193,7 @@ export interface IQueryBus {
    */
   execute<TQuery extends BaseQuery, TResult>(
     query: TQuery
-  ): Promise<Result<TResult>>;
+  ): Promise<ResultType<TResult>>;
 
   /**
    * 批量执行查询
@@ -256,7 +256,7 @@ export interface IQueryBus {
       cache?: boolean;
       timeout?: number;
     }
-  ): Promise<Result<TResult>[]>;
+  ): Promise<ResultType<TResult>[]>;
 
   /**
    * 检查查询处理器是否已注册

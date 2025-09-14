@@ -195,7 +195,17 @@ export abstract class TenantAwareEntity extends BaseEntity {
    * }
    * ```
    */
-  protected updateTimestamp(updatedBy: UserId): void {
+  protected override updateTimestamp(): void {
+    super.updateTimestamp();
+  }
+
+  /**
+   * 更新时间戳并记录更新者
+   *
+   * @description 更新实体的时间戳，同时记录更新者信息
+   * @param updatedBy 更新者用户ID
+   */
+  protected updateTimestampWithUser(updatedBy: UserId): void {
     super.updateTimestamp();
     this._updatedBy = updatedBy;
   }
@@ -271,11 +281,14 @@ export abstract class TenantAwareEntity extends BaseEntity {
    * console.log(entity1.equals(entity2)); // true（相同ID和租户）
    * ```
    */
-  public equals(other: TenantAwareEntity): boolean {
+  public override equals(other: BaseEntity): boolean {
     if (!super.equals(other)) {
       return false;
     }
 
+    if (!(other instanceof TenantAwareEntity)) {
+      return false;
+    }
     return this._tenantId.equals(other._tenantId);
   }
 
@@ -291,7 +304,7 @@ export abstract class TenantAwareEntity extends BaseEntity {
    * console.log(entity.toString()); // 输出: "UserProfile(id: ..., tenantId: ...)"
    * ```
    */
-  public toString(): string {
+  public override toString(): string {
     return `${
       this.constructor.name
     }(id: ${this.getId().toString()}, tenantId: ${this._tenantId.toString()})`;
@@ -310,7 +323,7 @@ export abstract class TenantAwareEntity extends BaseEntity {
    * // 输出: { id: "...", tenantId: "...", createdBy: "...", updatedBy: "...", createdAt: "...", updatedAt: "..." }
    * ```
    */
-  public toJSON(): Record<string, any> {
+  public override toJSON(): Record<string, any> {
     return {
       ...super.toJSON(),
       tenantId: this._tenantId.toString(),
