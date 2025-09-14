@@ -287,7 +287,9 @@ export * from './user-management.module';
 
 #### 测试文件组织原则
 
-1. **单元测试**：与被测试文件放在同级目录下，使用`.spec.ts`后缀
+1. **单元测试**：与被测试文件放在同级目录下的`__tests__`子目录中，使用`.spec.ts`后缀
+   - 遵循Nx约定，使用`__tests__`目录而不是`tests`目录
+   - 保持测试文件与被测试文件的紧密关联
 2. **集成测试**：放在`tests/integration/`目录下，使用`.integration.spec.ts`后缀
 3. **端到端测试**：放在`tests/e2e/`目录下，使用`.e2e-spec.ts`后缀
 4. **测试辅助工具**：放在`tests/helpers/`目录下，提供测试夹具和工具函数
@@ -299,25 +301,30 @@ libs/user-management/
 ├── domain/                          # 领域层
 │   ├── entities/                    # 领域实体
 │   │   ├── user-profile.entity.ts
-│   │   ├── user-profile.entity.spec.ts
 │   │   ├── user-settings.entity.ts
-│   │   └── user-settings.entity.spec.ts
+│   │   └── __tests__/               # 单元测试
+│   │       ├── user-profile.entity.spec.ts
+│   │       └── user-settings.entity.spec.ts
 │   ├── aggregates/                  # 聚合根
 │   │   ├── user.aggregate.ts
-│   │   └── user.aggregate.spec.ts
+│   │   └── __tests__/               # 单元测试
+│   │       └── user.aggregate.spec.ts
 │   ├── value-objects/               # 值对象
 │   │   ├── user-id.value-object.ts
-│   │   ├── user-id.value-object.spec.ts
 │   │   ├── user-status.value-object.ts
-│   │   └── user-status.value-object.spec.ts
+│   │   └── __tests__/               # 单元测试
+│   │       ├── user-id.value-object.spec.ts
+│   │       └── user-status.value-object.spec.ts
 │   ├── events/                      # 领域事件
 │   │   ├── user-created.event.ts
-│   │   ├── user-created.event.spec.ts
 │   │   ├── user-updated.event.ts
-│   │   └── user-updated.event.spec.ts
+│   │   └── __tests__/               # 单元测试
+│   │       ├── user-created.event.spec.ts
+│   │       └── user-updated.event.spec.ts
 │   ├── services/                    # 领域服务
 │   │   ├── user-domain.service.ts
-│   │   └── user-domain.service.spec.ts
+│   │   └── __tests__/               # 单元测试
+│   │       └── user-domain.service.spec.ts
 │   └── interfaces/                  # 领域接口
 │       ├── user-repository.interface.ts
 │       └── user-service.interface.ts
@@ -434,18 +441,22 @@ libs/user-management/
 #### 测试文件命名
 
 ```typescript
-// ✅ 正确：测试文件命名（与被测试文件同级目录）
+// ✅ 正确：测试文件命名（与被测试文件同级目录下的__tests__子目录）
 user-profile.entity.ts            // 被测试文件
-user-profile.entity.spec.ts       // 对应的单元测试文件
+__tests__/
+  user-profile.entity.spec.ts     // 对应的单元测试文件
 
 user.aggregate.ts                 // 被测试文件
-user.aggregate.spec.ts           // 对应的单元测试文件
+__tests__/
+  user.aggregate.spec.ts         // 对应的单元测试文件
 
 create-user.handler.ts            // 被测试文件
-create-user.handler.spec.ts       // 对应的单元测试文件
+__tests__/
+  create-user.handler.spec.ts     // 对应的单元测试文件
 
 user.service.ts                   // 被测试文件
-user.service.spec.ts              // 对应的单元测试文件
+__tests__/
+  user.service.spec.ts            // 对应的单元测试文件
 
 // ✅ 正确：集成测试和端到端测试命名
 user.controller.integration.spec.ts    // 集成测试
@@ -928,7 +939,7 @@ export class TestMocks {
 
 ### 🧪 **测试代码规范**
 
-1. **测试组织**：单元测试与被测试文件同级，集成测试和端到端测试独立组织
+1. **测试组织**：单元测试与被测试文件同级目录下的`__tests__`子目录，集成测试和端到端测试独立组织
 2. **测试结构**：清晰的测试类和方法组织
 3. **测试数据**：统一的测试夹具管理
 4. **测试隔离**：单元测试、集成测试、端到端测试分层组织

@@ -6,6 +6,9 @@ Core模块是Aiofix-AI-SaaS平台的核心基础架构库，为所有业务领�
 
 Core模块内置了完整的CQRS功能，并扩展了多租户、多组织、AI能力集成等企业级功能，为业务领域模块提供标准化的开发基础。通过内置CQRS，我们可以完全控制其行为并与平台的其他功能深度集成。
 
+参考：
+@nestjs/cqrs官方源码`forks/cqrs`
+
 ## 设计目标
 
 ### 核心目标
@@ -1412,7 +1415,7 @@ abstract class BaseAIService implements IAIService {
 
 ```typescript
 // 在业务模块中导入Core模块
-import { CoreModule } from '@aiofix-ai-saas-practice/core';
+import { CoreModule } from '@aiofix/core';
 
 @Module({
   imports: [

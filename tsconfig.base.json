@@ -3,69 +3,69 @@
     // 启用项目引用支持，允许TypeScript项目之间的依赖关系
     // 业务规则：在monorepo中，子项目可以引用其他子项目的类型定义
     "composite": true,
-    
+
     // 生成声明文件的source map，便于调试
     // 业务规则：提供类型定义的源码映射，支持IDE跳转到原始定义
     "declarationMap": true,
-    
+
     // 只生成声明文件，不生成JavaScript文件
     // 业务规则：库项目只需要类型定义，运行时由构建工具处理
     "emitDeclarationOnly": true,
-    
+
     // 从tslib导入辅助函数，减少代码体积
     // 业务规则：使用外部辅助函数库，避免重复代码
     "importHelpers": true,
-    
+
     // 确保每个文件都可以独立编译
     // 业务规则：支持增量编译和并行构建，提高构建性能
     "isolatedModules": true,
-    
+
     // 指定要包含的库文件
     // 业务规则：使用ES2022标准库，支持现代JavaScript特性
     "lib": ["es2022"],
-    
+
     // 使用Node.js的模块系统
     // 业务规则：支持ES模块和CommonJS的互操作性
     "module": "nodenext",
-    
+
     // 使用Node.js的模块解析策略
     // 业务规则：支持package.json的exports字段和条件导出
     "moduleResolution": "nodenext",
-    
+
     // 有错误时不生成输出文件
     // 业务规则：确保只有无错误的代码才会被构建
     "noEmitOnError": true,
-    
+
     // 禁止switch语句中的fallthrough
     // 业务规则：防止意外的case穿透，提高代码安全性
     "noFallthroughCasesInSwitch": true,
-    
+
     // 要求显式使用override关键字
     // 业务规则：明确标识重写的方法，避免意外的重写
     "noImplicitOverride": true,
-    
+
     // 要求所有代码路径都有返回值
     // 业务规则：确保函数在所有情况下都有明确的返回值
     "noImplicitReturns": true,
-    
+
     // 检查未使用的局部变量
     // 业务规则：保持代码整洁，避免无用的变量声明
     "noUnusedLocals": true,
-    
+
     // 跳过库文件的类型检查
     // 业务规则：提高编译速度，专注于项目代码的类型检查
     "skipLibCheck": true,
-    
+
     // 启用所有严格类型检查选项
     // 业务规则：确保类型安全，减少运行时错误
     "strict": true,
-    
+
     // 编译目标为ES2022
     // 业务规则：使用现代JavaScript特性，保持与Node.js的兼容性
     "target": "es2022",
-    
+
     // 自定义条件导出
     // 业务规则：支持包的条件导出，实现不同环境下的模块解析
-    "customConditions": ["@aiofix-ai-saas-practice/source"]
+    "customConditions": ["@aiofix/source"]
   }
 }

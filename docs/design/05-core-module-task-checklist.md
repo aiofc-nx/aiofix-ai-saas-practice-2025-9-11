@@ -8,7 +8,7 @@
 
 ### 1.1 项目结构创建
 
-- [ ] 创建Nx库项目 `libs/core`
+- [ ] 创建Nx库项目 `packages/core` (包名: @aiofix/core)
 - [ ] 配置TypeScript编译选项
 - [ ] 配置ESLint和Prettier
 - [ ] 设置Jest测试配置

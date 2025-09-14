@@ -11,11 +11,32 @@ alwaysApply: true
 - 你是一个资深软件工程师，精通Node.js、TypeScript、NestJS等技术。
 - 我是一个中国软件工程师，所以，你应当使用中文与我交流。
 
+## 工具调用注意事项
+
+- 使用 `run_terminal_cmd` 工具时，应确保工作目录在 monorepo 根路径下:
+
+`/home/arligle/V1/Aiofix/aiofix-ai-saas-platform`
+
+- 然后再使用相对路径进入到子项目的目录下执行命令，示例：
+
+```bash
+cd /home/arligle/V1/Aiofix/aiofix-ai-saas-platform && cd packages/auth && pnpm build
+```
+
+或者，直接使用绝对路径，示例：
+
+```bash
+cd /home/arligle/V1/Aiofix/aiofix-ai-saas-platform/packages/auth && pnpm build
+```
+
+- 避免直接切换到子项目目录，确保命令执行的上下文正确性
+
 ## 代码规范与注释规范
 
 ### 重要原则
 
 - 遵循代码即文档的原则，在按照TSDoc规范的基础上，所有类、方法、接口都应当描述业务规则与逻辑。
+
 - 修改代码后应当同步更新代码注释，确保代码与注释一致。
 
 ### 规范文档位置
@@ -36,6 +57,83 @@ alwaysApply: true
    - 异常处理
    - 使用场景
 4. **必需标记**: 包括 @description、@param、@returns、@throws、@example 等标记
+示例：
+
+```text
+/**
+ * 基础实体类
+ *
+ * 实体是领域驱动设计中的核心概念，具有唯一标识符和生命周期。
+ * 实体的相等性基于其标识符，而不是属性值。
+ *
+ * @description 所有领域实体的基类，提供实体的一致行为
+ * 包括唯一标识符、创建时间、更新时间等基础属性
+ *
+ * ## 业务规则
+ *
+ * ### 标识符规则
+ * - 每个实体必须具有唯一的标识符
+ * - 标识符在实体生命周期内不可变更
+ * - 标识符用于实体的相等性比较
+ * - 标识符必须符合EntityId的格式要求
+ *
+ * ### 时间戳规则
+ * - 创建时间在实体创建时设置，不可修改
+ * - 更新时间在实体状态变更时自动更新
+ * - 时间戳采用UTC时区，确保跨时区一致性
+ * - 时间戳精度到毫秒级别
+ *
+ * ### 相等性规则
+ * - 实体的相等性基于标识符比较，而非属性值
+ * - 相同类型且相同标识符的实体被视为相等
+ * - 不同类型但相同标识符的实体被视为不相等
+ * - null和undefined与任何实体都不相等
+ *
+ * ### 生命周期规则
+ * - 实体创建后具有完整的生命周期管理
+ * - 实体状态变更会触发相应的事件
+ * - 实体支持序列化和反序列化操作
+ * - 实体变更会记录操作时间和上下文
+ *
+ * ## 业务逻辑流程
+ *
+ * 1. **实体创建**：通过构造函数创建实体实例
+ * 2. **标识符分配**：自动或手动分配唯一标识符
+ * 3. **时间戳设置**：设置创建时间和初始更新时间
+ * 4. **状态管理**：通过业务方法管理实体状态
+ * 5. **变更追踪**：自动记录状态变更时间
+ *
+ * @example
+ * ```typescript
+ * class User extends BaseEntity {
+ *   constructor(
+ *     id: EntityId,
+ *     private name: string,
+ *     private email: string
+ *   ) {
+ *     super(id);
+ *   }
+ *
+ *   getName(): string {
+ *     return this.name;
+ *   }
+ *
+ *   updateName(newName: string): void {
+ *     this.name = newName;
+ *     this.updateTimestamp(); // 自动更新修改时间
+ *   }
+ * }
+ *
+ * // 创建用户实体
+ * const user = new User(EntityId.generate(), '张三', 'zhangsan@example.com');
+ *
+ * // 更新用户信息
+ * user.updateName('李四');
+ * ```
+ *
+ * @since 1.0.0
+ */
+```
 
 ### 代码规范要求
 
