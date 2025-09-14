@@ -32,16 +32,15 @@
   "author": "Aiofix Team",
   "license": "MIT",
   "dependencies": {
-    "@aiofix/logging": "workspace:*",
-    "@aiofix/config": "workspace:*",
     "@aiofix/cache": "workspace:*",
+    "@aiofix/config": "workspace:*",
     "@aiofix/database": "workspace:*",
+    "@aiofix/logging": "workspace:*",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.2",
-    "typeorm": "^0.3.20",
-    "uuid": "^13.0.0"
+    "typeorm": "^0.3.20"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
@@ -52,7 +51,8 @@
     "eslint": "^9.35.0",
     "jest": "^30.1.3",
     "ts-jest": "^29.4.1",
-    "typescript": "~5.9.2"
+    "typescript": "~5.9.2",
+    "uuid": "^9.0.1"
   },
   "peerDependencies": {
     "@nestjs/common": "^10.0.0",

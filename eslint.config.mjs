@@ -67,19 +67,7 @@ export default [
       '@typescript-eslint/prefer-readonly-parameter-types': 'off',
       '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
       '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
-      '@typescript-eslint/member-delimiter-style': [
-        'error',
-        {
-          multiline: {
-            delimiter: 'semi',
-            requireLast: true,
-          },
-          singleline: {
-            delimiter: 'semi',
-            requireLast: false,
-          },
-        },
-      ],
+      '@typescript-eslint/member-delimiter-style': 'off', // 规则已废弃
       '@typescript-eslint/naming-convention': [
         'error',
         {
@@ -138,19 +126,7 @@ export default [
       '@typescript-eslint/prefer-readonly': 'error',
       '@typescript-eslint/array-type': ['error', { default: 'array-simple' }],
       '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
-      '@typescript-eslint/member-delimiter-style': [
-        'error',
-        {
-          multiline: {
-            delimiter: 'semi',
-            requireLast: true,
-          },
-          singleline: {
-            delimiter: 'semi',
-            requireLast: false,
-          },
-        },
-      ],
+      '@typescript-eslint/member-delimiter-style': 'off', // 规则已废弃
       '@typescript-eslint/naming-convention': [
         'error',
         {

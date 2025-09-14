@@ -235,7 +235,8 @@ export class CoreCacheService {
   getCommandCache(): any {
     const cache = this.cacheServices.get('command');
     if (!cache) {
-      throw new Error('命令缓存服务未初始化');
+      this.logger.warn('命令缓存服务未初始化', LogContext.SYSTEM, {});
+      return undefined;
     }
     return cache;
   }
@@ -249,7 +250,8 @@ export class CoreCacheService {
   getQueryCache(): any {
     const cache = this.cacheServices.get('query');
     if (!cache) {
-      throw new Error('查询缓存服务未初始化');
+      this.logger.warn('查询缓存服务未初始化', LogContext.SYSTEM, {});
+      return undefined;
     }
     return cache;
   }
@@ -263,7 +265,8 @@ export class CoreCacheService {
   getEventCache(): any {
     const cache = this.cacheServices.get('event');
     if (!cache) {
-      throw new Error('事件缓存服务未初始化');
+      this.logger.warn('事件缓存服务未初始化', LogContext.SYSTEM, {});
+      return undefined;
     }
     return cache;
   }
@@ -277,7 +280,8 @@ export class CoreCacheService {
   getEventStoreCache(): any {
     const cache = this.cacheServices.get('eventStore');
     if (!cache) {
-      throw new Error('事件存储缓存服务未初始化');
+      this.logger.warn('事件存储缓存服务未初始化', LogContext.SYSTEM, {});
+      return undefined;
     }
     return cache;
   }
@@ -291,7 +295,8 @@ export class CoreCacheService {
   getAggregateCache(): any {
     const cache = this.cacheServices.get('aggregate');
     if (!cache) {
-      throw new Error('聚合根缓存服务未初始化');
+      this.logger.warn('聚合缓存服务未初始化', LogContext.SYSTEM, {});
+      return undefined;
     }
     return cache;
   }

@@ -85,6 +85,7 @@ export abstract class BaseDomainEvent implements DomainEvent {
   public readonly aggregateId: EntityId;
   public readonly occurredOn: Timestamp;
   public readonly eventType: string;
+  public readonly version: string;
 
   /**
    * 构造函数
@@ -94,6 +95,7 @@ export abstract class BaseDomainEvent implements DomainEvent {
    * @param aggregateId 聚合根标识符
    * @param eventId 事件标识符，默认为新生成的ID
    * @param occurredOn 事件发生时间，默认为当前时间
+   * @param version 事件版本，默认为'1.0.0'
    *
    * @example
    * ```typescript
@@ -104,12 +106,14 @@ export abstract class BaseDomainEvent implements DomainEvent {
     eventType: string,
     aggregateId: EntityId,
     eventId?: EntityId,
-    occurredOn?: Timestamp
+    occurredOn?: Timestamp,
+    version: string = '1.0.0',
   ) {
     this.eventType = eventType;
     this.aggregateId = aggregateId;
     this.eventId = eventId || EntityId.generate();
     this.occurredOn = occurredOn || new Date();
+    this.version = version;
   }
 
   /**
@@ -177,6 +181,22 @@ export abstract class BaseDomainEvent implements DomainEvent {
   }
 
   /**
+   * 获取事件版本
+   *
+   * @description 返回事件的版本号
+   * @returns 事件版本号
+   *
+   * @example
+   * ```typescript
+   * const version = event.getVersion();
+   * console.log(version); // 输出: "1.0.0"
+   * ```
+   */
+  public getVersion(): string {
+    return this.version;
+  }
+
+  /**
    * 转换为字符串表示
    *
    * @description 提供事件的字符串表示，便于调试和日志记录
@@ -213,6 +233,7 @@ export abstract class BaseDomainEvent implements DomainEvent {
       aggregateId: this.aggregateId.toString(),
       eventType: this.eventType,
       occurredOn: this.occurredOn.toISOString(),
+      version: this.version,
     };
   }
 

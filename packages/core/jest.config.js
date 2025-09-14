@@ -5,12 +5,12 @@ module.exports = {
   roots: ['<rootDir>/src'],
   testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
   transform: {
-    '^.+\\.ts$': 'ts-jest',
-  },
-  globals: {
-    'ts-jest': {
-      tsconfig: 'tsconfig.spec.json',
-    },
+    '^.+\\.ts$': [
+      'ts-jest',
+      {
+        tsconfig: 'tsconfig.spec.json',
+      },
+    ],
   },
   collectCoverageFrom: [
     'src/**/*.ts',
@@ -30,9 +30,11 @@ module.exports = {
     },
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@aiofix/core$': '<rootDir>/src/index.ts',
+    '^uuid$': require.resolve('uuid'),
   },
+  transformIgnorePatterns: ['node_modules/(?!(uuid|@aiofix)/)'],
   testTimeout: 10000,
   verbose: true,
 };
