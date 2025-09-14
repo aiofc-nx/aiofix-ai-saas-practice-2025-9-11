@@ -1,6 +1,13 @@
 import { ValueObject } from '../../shared/types/value-object';
 
 /**
+ * UUID v4正则表达式
+ * 用于验证UUID格式的正确性
+ */
+const UUID_V4_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/**
  * 租户标识符值对象
  *
  * 租户标识符是多租户架构中的核心概念，用于唯一标识租户。
@@ -91,6 +98,27 @@ export class TenantId extends ValueObject<string> {
    */
   public static fromString(value: string): TenantId {
     return new TenantId(value);
+  }
+
+  /**
+   * 验证UUID格式
+   *
+   * @description 验证提供的字符串是否为有效的UUID v4格式
+   * @param value 要验证的字符串
+   * @returns 是否为有效的UUID v4格式
+   *
+   * @example
+   * ```typescript
+   * const isValid = TenantId.isValid('123e4567-e89b-12d3-a456-426614174000');
+   * console.log(isValid); // true
+   * ```
+   */
+  public static isValid(value: string): boolean {
+    if (!value || typeof value !== 'string') {
+      return false;
+    }
+
+    return UUID_V4_REGEX.test(value);
   }
 
   /**

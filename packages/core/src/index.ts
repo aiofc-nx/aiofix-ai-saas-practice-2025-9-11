@@ -36,3 +36,6 @@ export * from './shared/types';
 
 // 异常类
 export * from './shared/exceptions';
+
+// 基础设施层
+export * from './infrastructure';

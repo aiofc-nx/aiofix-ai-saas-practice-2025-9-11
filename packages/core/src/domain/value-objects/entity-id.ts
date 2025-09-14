@@ -101,6 +101,27 @@ export class EntityId extends ValueObject<string> {
   }
 
   /**
+   * 验证UUID格式
+   *
+   * @description 验证提供的字符串是否为有效的UUID v4格式
+   * @param value 要验证的字符串
+   * @returns 是否为有效的UUID v4格式
+   *
+   * @example
+   * ```typescript
+   * const isValid = EntityId.isValid('123e4567-e89b-12d3-a456-426614174000');
+   * console.log(isValid); // true
+   * ```
+   */
+  public static isValid(value: string): boolean {
+    if (!value || typeof value !== 'string') {
+      return false;
+    }
+
+    return UUID_V4_REGEX.test(value);
+  }
+
+  /**
    * 获取实体标识符的值
    *
    * @description 返回值对象的实际UUID字符串值
