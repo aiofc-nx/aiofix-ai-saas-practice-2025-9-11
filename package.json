@@ -1,0 +1,35 @@
+{
+  "name": "@aiofix/source",
+  "version": "0.0.0",
+  "license": "MIT",
+  "scripts": {
+    "libs:fix": "pnpm dlx sherif@latest --fix"
+  },
+  "config": {
+    "commitizen": {
+      "path": "node_modules/cz-customizable"
+    },
+    "cz-customizable": {
+      "config": "cz-config.cjs"
+    }
+  },
+  "private": true,
+  "devDependencies": {
+    "@nx/js": "21.5.2",
+    "@nx/workspace": "21.5.2",
+    "@swc-node/register": "~1.9.1",
+    "@swc/core": "~1.5.7",
+    "@swc/helpers": "~0.5.11",
+    "nx": "21.5.2",
+    "prettier": "^2.6.2",
+    "husky": "^9.1.7",
+    "commitizen": "^4.3.1",
+    "cz-customizable": "^7.5.1",
+    "tslib": "^2.3.0",
+    "typescript": "~5.9.2"
+  },
+  "engines": {
+    "node": ">= 20"
+  },
+  "packageManager": "pnpm@10.15.1"
+}

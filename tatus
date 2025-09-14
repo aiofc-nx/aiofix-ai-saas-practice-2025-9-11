@@ -1,0 +1,26 @@
+[1mdiff --git a/.cursor/mcp.json b/.cursor/mcp.json[m
+[1mindex 1fb7002..e9f29cc 100644[m
+[1m--- a/.cursor/mcp.json[m
+[1m+++ b/.cursor/mcp.json[m
+[36m@@ -2,12 +2,17 @@[m
+   "mcpServers": {[m
+     "nx-mcp": {[m
+       "command": "npx",[m
+[31m-      "args": ["-y", "nx-mcp@latest"][m
+[32m+[m[32m      "args": [[m
+[32m+[m[32m        "-y",[m
+[32m+[m[32m        "nx-mcp@latest"[m
+[32m+[m[32m      ][m
+     },[m
+     "eslint": {[m
+       "command": "npx",[m
+[31m-      "args": ["@eslint/mcp@latest"],[m
+[32m+[m[32m      "args": [[m
+[32m+[m[32m        "@eslint/mcp@latest"[m
+[32m+[m[32m      ],[m
+       "env": {}[m
+     }[m
+   }[m
+[31m-}[m
+[32m+[m[32m}[m
+\ No newline at end of file[m

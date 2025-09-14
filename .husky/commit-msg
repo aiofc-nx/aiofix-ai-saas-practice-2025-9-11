@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# 使用commitizen进行提交消息检查
+npx --no -- commitlint --edit $1
