@@ -40,5 +40,14 @@ export * from './shared/exceptions';
 // 基础设施层
 export * from './infrastructure';
 
+// 持久化组件
+export * from './infrastructure/persistence';
+
+// 事件投射器
+export * from './infrastructure/events/projectors';
+
+// 读模型
+export * from './infrastructure/projections';
+
 // Core模块
 export { CoreModule } from './core.module';
