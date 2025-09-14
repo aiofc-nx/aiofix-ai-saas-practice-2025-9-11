@@ -19,6 +19,9 @@ export * from './domain/aggregates';
 // 领域事件
 export * from './domain/events';
 
+// 应用层（CQRS）
+export * from './application';
+
 // 共享类型
 export * from './shared/types';
 

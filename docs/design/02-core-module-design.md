@@ -33,31 +33,31 @@ Core模块内置了完整的CQRS功能，并扩展了多租户、多组织、AI�
 
 ```text
 libs/core/
-├── domain/                   # 领域基础
+├── domain/                   # 领域层基础
 │   ├── entities/             # 基础领域实体
 │   ├── aggregates/           # 基础聚合根
 │   ├── value-objects/        # 基础值对象
 │   ├── events/               # 基础事件
 │   ├── services/             # 基础领域服务
 │   └── specifications/       # 基础规约
-├── application/              # 应用基础
+├── application/              # 应用层基础
 │   ├── commands/             # 命令基础
 │   ├── queries/              # 查询基础
 │   ├── handlers/             # 处理器基础
-│   ├── services/             # 应用服务基础
-│   └── dto/                  # 基础DTO
-├── infrastructure/           # 基础设施
+│   └── services/             # 应用服务基础
+├── infrastructure/           # 基础设施层
 │   ├── persistence/          # 持久化基础
 │   ├── messaging/            # 消息基础
 │   ├── events/               # 事件基础设施
 │   ├── external/             # 外部服务基础
 │   └── cqrs/                 # 内置CQRS功能
-├── interfaces/               # 接口基础
+├── interfaces/               # 接口层基础
+│   ├── dto/                  # 数据传输对象
 │   ├── rest/                 # REST API基础
 │   ├── graphql/              # GraphQL基础
 │   ├── grpc/                 # gRPC基础
 │   └── messaging/            # 消息接口基础
-├── shared/                   # 共享组件
+├── shared/                   # 共享层组件
 │   ├── types/                # 通用类型
 │   ├── utils/                # 工具函数
 │   ├── decorators/           # 装饰器
@@ -1727,6 +1727,94 @@ interface IConfig {
 export class ConfigService implements IConfig {
   get<T>(key: string): T {
     // 实现配置获取逻辑
+  }
+}
+```
+
+## 数据传输对象 (DTO) 设计
+
+### DTO 设计原则
+
+DTO（数据传输对象）属于接口层，用于在不同层之间传输数据，特别是在API接口和业务逻辑之间。
+
+#### DTO 职责
+
+- **数据验证**：验证输入数据的格式和约束
+- **数据转换**：在不同层之间转换数据格式
+- **API契约**：定义API的输入输出格式
+- **序列化**：支持JSON序列化和反序列化
+
+#### DTO 设计规则
+
+```typescript
+// 请求DTO示例
+export class CreateUserRequestDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(50)
+  name: string;
+
+  @IsEmail()
+  email: string;
+
+  @IsUUID()
+  tenantId: string;
+
+  @IsOptional()
+  @IsUUID()
+  organizationId?: string;
+}
+
+// 响应DTO示例
+export class UserResponseDto {
+  @IsUUID()
+  id: string;
+
+  @IsString()
+  name: string;
+
+  @IsEmail()
+  email: string;
+
+  @IsUUID()
+  tenantId: string;
+
+  @IsDateString()
+  createdAt: string;
+
+  @IsDateString()
+  updatedAt: string;
+}
+```
+
+#### DTO 与领域对象的关系
+
+- **DTO**：用于数据传输和验证，属于接口层
+- **领域对象**：包含业务逻辑，属于领域层
+- **转换**：通过Mapper在DTO和领域对象之间转换
+
+```typescript
+// DTO到领域对象的转换
+export class UserMapper {
+  static toDomain(dto: CreateUserRequestDto, createdBy: UserId): User {
+    return new User(
+      EntityId.generate(),
+      TenantId.fromString(dto.tenantId),
+      dto.name,
+      dto.email,
+      createdBy
+    );
+  }
+
+  static toDto(domain: User): UserResponseDto {
+    return {
+      id: domain.getId().toString(),
+      name: domain.getName(),
+      email: domain.getEmail(),
+      tenantId: domain.getTenantId().toString(),
+      createdAt: domain.getCreatedAt().toISOString(),
+      updatedAt: domain.getUpdatedAt().toISOString(),
+    };
   }
 }
 ```
