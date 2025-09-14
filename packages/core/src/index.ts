@@ -39,3 +39,6 @@ export * from './shared/exceptions';
 
 // 基础设施层
 export * from './infrastructure';
+
+// Core模块
+export { CoreModule } from './core.module';

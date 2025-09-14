@@ -1,16 +1,4 @@
 /// <reference types="jest" />
-
-// 声明 Jest 全局变量
-declare global {
-  const describe: any;
-  const it: any;
-  const expect: any;
-  const beforeEach: any;
-  const afterEach: any;
-  const beforeAll: any;
-  const afterAll: any;
-}
-
 import { QueryBus } from '../query-bus';
 import { IQueryHandler, BaseQuery } from '../../../application/queries';
 import { ResultType, Result } from '../../../shared/types/common';
@@ -67,18 +55,18 @@ describe('QueryBus', () => {
   describe('register', () => {
     it('应该注册查询处理器', () => {
       const handler = new TestQueryHandler();
-      queryBus.register(handler);
+      queryBus.register(TestQuery, handler);
 
-      expect(queryBus.isRegistered('TestQuery')).toBe(true);
+      expect(queryBus.isRegistered(TestQuery)).toBe(true);
     });
 
     it('应该防止重复注册', () => {
       const handler1 = new TestQueryHandler();
       const handler2 = new TestQueryHandler();
 
-      queryBus.register(handler1);
+      queryBus.register(TestQuery, handler1);
 
-      expect(() => queryBus.register(handler2)).toThrow(
+      expect(() => queryBus.register(TestQuery, handler2)).toThrow(
         'Handler for query type TestQuery is already registered'
       );
     });
@@ -87,20 +75,20 @@ describe('QueryBus', () => {
   describe('unregister', () => {
     it('应该注销查询处理器', () => {
       const handler = new TestQueryHandler();
-      queryBus.register(handler);
+      queryBus.register(TestQuery, handler);
 
-      expect(queryBus.isRegistered('TestQuery')).toBe(true);
+      expect(queryBus.isRegistered(TestQuery)).toBe(true);
 
-      queryBus.unregister(handler);
+      queryBus.unregister(TestQuery);
 
-      expect(queryBus.isRegistered('TestQuery')).toBe(false);
+      expect(queryBus.isRegistered(TestQuery)).toBe(false);
     });
   });
 
   describe('execute', () => {
     it('应该执行查询并返回成功结果', async () => {
       const handler = new TestQueryHandler();
-      queryBus.register(handler);
+      queryBus.register(TestQuery, handler);
 
       const query = new TestQuery('test-id');
       const result = await queryBus.execute(query);
@@ -114,7 +102,7 @@ describe('QueryBus', () => {
     it('应该处理查询执行失败', async () => {
       const handler = new TestQueryHandler();
       handler.shouldReturnFailure = true;
-      queryBus.register(handler);
+      queryBus.register(TestQuery, handler);
 
       const query = new TestQuery('test-id');
       const result = await queryBus.execute(query);
@@ -126,7 +114,7 @@ describe('QueryBus', () => {
     it('应该处理处理器异常', async () => {
       const handler = new TestQueryHandler();
       handler.shouldThrowError = true;
-      queryBus.register(handler);
+      queryBus.register(TestQuery, handler);
 
       const query = new TestQuery('test-id');
       const result = await queryBus.execute(query);
@@ -147,7 +135,7 @@ describe('QueryBus', () => {
 
     it('应该支持缓存功能', async () => {
       const handler = new TestQueryHandler();
-      queryBus.register(handler);
+      queryBus.register(TestQuery, handler);
 
       const query = new TestQuery('test-id');
 
@@ -166,7 +154,7 @@ describe('QueryBus', () => {
     it('应该处理查询超时', async () => {
       const handler = new TestQueryHandler();
       handler.processingTime = 1000; // 1秒处理时间
-      queryBus.register(handler);
+      queryBus.register(TestQuery, handler);
 
       const query = new TestQuery('test-id');
       const result = await queryBus.execute(query, { timeout: 100 }); // 100ms超时
@@ -179,7 +167,7 @@ describe('QueryBus', () => {
   describe('executeBatch', () => {
     it('应该并行执行查询', async () => {
       const handler = new TestQueryHandler();
-      queryBus.register(handler);
+      queryBus.register(TestQuery, handler);
 
       const queries = [
         new TestQuery('id1'),
@@ -198,7 +186,7 @@ describe('QueryBus', () => {
 
     it('应该串行执行查询', async () => {
       const handler = new TestQueryHandler();
-      queryBus.register(handler);
+      queryBus.register(TestQuery, handler);
 
       const queries = [
         new TestQuery('id1'),
@@ -217,7 +205,7 @@ describe('QueryBus', () => {
 
     it('应该支持批量查询缓存', async () => {
       const handler = new TestQueryHandler();
-      queryBus.register(handler);
+      queryBus.register(TestQuery, handler);
 
       const queries = [
         new TestQuery('id1'),
@@ -240,7 +228,7 @@ describe('QueryBus', () => {
   describe('缓存管理', () => {
     it('应该清除缓存', async () => {
       const handler = new TestQueryHandler();
-      queryBus.register(handler);
+      queryBus.register(TestQuery, handler);
 
       const query = new TestQuery('test-id');
 
@@ -260,7 +248,7 @@ describe('QueryBus', () => {
   describe('统计信息', () => {
     it('应该跟踪处理统计信息', async () => {
       const handler = new TestQueryHandler();
-      queryBus.register(handler);
+      queryBus.register(TestQuery, handler);
 
       const query = new TestQuery('test-id');
       await queryBus.execute(query);
@@ -274,7 +262,7 @@ describe('QueryBus', () => {
 
     it('应该跟踪缓存命中统计', async () => {
       const handler = new TestQueryHandler();
-      queryBus.register(handler);
+      queryBus.register(TestQuery, handler);
 
       const query = new TestQuery('test-id');
 
@@ -292,7 +280,7 @@ describe('QueryBus', () => {
 
     it('应该清除统计信息', async () => {
       const handler = new TestQueryHandler();
-      queryBus.register(handler);
+      queryBus.register(TestQuery, handler);
 
       const query = new TestQuery('test-id');
       await queryBus.execute(query);
@@ -307,7 +295,7 @@ describe('QueryBus', () => {
   describe('工具方法', () => {
     it('应该获取注册的查询类型', () => {
       const handler = new TestQueryHandler();
-      queryBus.register(handler);
+      queryBus.register(TestQuery, handler);
 
       const queryTypes = queryBus.getRegisteredQueryTypes();
       expect(queryTypes).toContain('TestQuery');

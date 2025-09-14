@@ -66,6 +66,11 @@
 
     // 自定义条件导出
     // 业务规则：支持包的条件导出，实现不同环境下的模块解析
-    "customConditions": ["@aiofix/source"]
+    "customConditions": ["@aiofix/source"],
+
+    // 启用装饰器支持
+    // 业务规则：支持NestJS装饰器语法，如@Module、@Injectable等
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   }
 }

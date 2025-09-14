@@ -18,7 +18,7 @@
 ### 技术原则
 
 - **DDD驱动**：遵循领域驱动设计原则
-- **Clean Architecture**：遵循清洁架构分层原则
+- **Clean Architecture**：遵循四层清洁架构分层原则（Domain、Application、Infrastructure、Interface）
 - **CQRS模式**：命令查询分离，事件驱动
 - **依赖倒置**：通过接口和抽象类实现依赖倒置
 - **单一职责**：每个类和方法职责单一明确
@@ -477,7 +477,7 @@ export class UserController extends TenantController {
 #### 模块组织
 
 ```typescript
-// ✅ 正确：模块结构清晰
+// ✅ 正确：模块结构清晰，遵循Clean Architecture四层结构
 @Module({
   imports: [
     CoreModule.forRoot({
@@ -488,12 +488,25 @@ export class UserController extends TenantController {
     }),
     UserModule,
   ],
-  controllers: [UserController],
+  controllers: [UserController], // Interface Layer
   providers: [
+    // Application Layer
     UserService,
+    CreateUserUseCase,
+    UpdateUserUseCase,
+    
+    // Infrastructure Layer
     {
       provide: 'IUserRepository',
       useClass: UserRepository,
+    },
+    {
+      provide: 'ICommandBus',
+      useClass: CommandBus,
+    },
+    {
+      provide: 'IQueryBus',
+      useClass: QueryBus,
     },
     {
       provide: 'IEventBus',

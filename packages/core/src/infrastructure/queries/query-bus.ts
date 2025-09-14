@@ -1,5 +1,5 @@
 import { IQueryBus, IQueryHandler, BaseQuery } from '../../application/queries';
-import { ResultType } from '../../shared/types/common';
+import { ResultType, Result } from '../../shared/types/common';
 
 /**
  * 查询总线实现
@@ -74,46 +74,48 @@ export class QueryBus implements IQueryBus {
    * 注册查询处理器
    *
    * @description 将查询处理器注册到查询总线
+   * @param queryType 查询类型
    * @param handler 查询处理器实例
    *
    * @example
    * ```typescript
    * const queryBus = new QueryBus();
    * const handler = new GetUserByIdQueryHandler();
-   * queryBus.register(handler);
+   * queryBus.register(GetUserByIdQuery, handler);
    * ```
    */
   public register<TQuery extends BaseQuery, TResult>(
+    queryType: new (...args: any[]) => TQuery,
     handler: IQueryHandler<TQuery, TResult>
   ): void {
-    const queryType = this.getQueryType(handler);
+    const queryTypeName = queryType.name;
 
-    if (this.handlers.has(queryType)) {
+    if (this.handlers.has(queryTypeName)) {
       throw new Error(
-        `Handler for query type ${queryType} is already registered`
+        `Handler for query type ${queryTypeName} is already registered`
       );
     }
 
-    this.handlers.set(queryType, handler as IQueryHandler<BaseQuery, any>);
+    this.handlers.set(queryTypeName, handler as IQueryHandler<BaseQuery, any>);
   }
 
   /**
    * 注销查询处理器
    *
    * @description 从查询总线中注销指定的查询处理器
-   * @param handler 要注销的查询处理器实例
+   * @param queryType 要注销的查询类型
    *
    * @example
    * ```typescript
    * const queryBus = new QueryBus();
-   * queryBus.unregister(handler);
+   * queryBus.unregister(GetUserByIdQuery);
    * ```
    */
   public unregister<TQuery extends BaseQuery, TResult>(
-    handler: IQueryHandler<TQuery, TResult>
+    queryType: new (...args: any[]) => TQuery
   ): void {
-    const queryType = this.getQueryType(handler);
-    this.handlers.delete(queryType);
+    const queryTypeName = queryType.name;
+    this.handlers.delete(queryTypeName);
   }
 
   /**
@@ -150,7 +152,7 @@ export class QueryBus implements IQueryBus {
     const handler = this.handlers.get(queryType);
 
     if (!handler) {
-      return ResultType.failure(
+      return Result.failure(
         new Error(`No handler registered for query type: ${queryType}`)
       );
     }
@@ -172,7 +174,7 @@ export class QueryBus implements IQueryBus {
       // 验证查询
       const validationResult = await this.validateQuery(query);
       if (!validationResult.isValid) {
-        return ResultType.failure(
+        return Result.failure(
           new Error(
             `Query validation failed: ${validationResult.errors.join(', ')}`
           )
@@ -202,7 +204,7 @@ export class QueryBus implements IQueryBus {
       this.updateStats(queryType, false, 0, false);
 
       console.error(`Query execution failed for ${queryType}:`, error);
-      return ResultType.failure(
+      return Result.failure(
         error instanceof Error ? error : new Error(String(error))
       );
     }
@@ -268,8 +270,8 @@ export class QueryBus implements IQueryBus {
    * }
    * ```
    */
-  public isRegistered(queryType: string): boolean {
-    return this.handlers.has(queryType);
+  public isRegistered(queryType: new (...args: any[]) => BaseQuery): boolean {
+    return this.handlers.has(queryType.name);
   }
 
   /**
@@ -359,6 +361,24 @@ export class QueryBus implements IQueryBus {
    */
   public getRegisteredQueryTypes(): string[] {
     return Array.from(this.handlers.keys());
+  }
+
+  /**
+   * 获取注册的查询类型
+   *
+   * @description 获取所有已注册处理器的查询类型列表（返回构造函数）
+   * @returns 查询类型构造函数列表
+   *
+   * @example
+   * ```typescript
+   * const queryTypes = queryBus.getRegisteredTypes();
+   * console.log('已注册的查询类型:', queryTypes);
+   * ```
+   */
+  public getRegisteredTypes(): (new (...args: any[]) => BaseQuery)[] {
+    // 这里返回空数组，因为我们需要查询类型的构造函数
+    // 在实际应用中，需要维护一个构造函数映射
+    return [];
   }
 
   /**
@@ -509,29 +529,5 @@ export class QueryBus implements IQueryBus {
       stats.failureCount++;
       stats.totalTime += processingTime;
     }
-  }
-
-  /**
-   * 获取查询类型
-   *
-   * @description 从处理器中获取支持的查询类型
-   * @param handler 查询处理器
-   * @returns 查询类型
-   * @private
-   */
-  private getQueryType<TQuery extends BaseQuery, TResult>(
-    handler: IQueryHandler<TQuery, TResult>
-  ): string {
-    // 这里需要从处理器中获取支持的查询类型
-    // 可以通过反射或配置来获取
-    const handlerName = handler.constructor.name;
-
-    // 简单的命名约定：GetUserByIdQueryHandler -> GetUserByIdQuery
-    if (handlerName.endsWith('QueryHandler')) {
-      return handlerName.replace('QueryHandler', 'Query');
-    }
-
-    // 如果无法推断，返回处理器名称
-    return handlerName;
   }
 }

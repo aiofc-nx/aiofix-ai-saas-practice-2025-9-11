@@ -144,9 +144,7 @@ export abstract class BaseQuery {
     initiatedAt?: Timestamp
   ) {
     this.queryId = queryId || EntityId.generate();
-    this.initiatedBy =
-      initiatedBy ||
-      EntityId.fromString('00000000-0000-0000-0000-000000000000'); // 系统用户ID
+    this.initiatedBy = initiatedBy || EntityId.generate(); // 系统用户ID
     this.initiatedAt = initiatedAt || new Date();
   }
 

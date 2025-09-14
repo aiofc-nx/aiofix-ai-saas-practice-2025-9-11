@@ -37,110 +37,131 @@
 
 ```text
 libs/user-management/
-├── domain/                          # 领域层
-│   ├── entities/                    # 领域实体
-│   │   ├── user-profile.entity.ts
-│   │   ├── user-profile.entity.spec.ts
-│   │   ├── user-settings.entity.ts
-│   │   └── user-settings.entity.spec.ts
-│   ├── aggregates/                  # 聚合根
-│   │   ├── user.aggregate.ts
-│   │   └── user.aggregate.spec.ts
-│   ├── value-objects/               # 值对象
+├── domain/                          # Domain Layer (企业业务规则层)
+│   ├── entities/                    # 领域实体基类
+│   │   ├── base.entity.ts
+│   │   ├── tenant-aware.entity.ts
+│   │   └── __tests__/
+│   │       ├── base.entity.spec.ts
+│   │       └── tenant-aware.entity.spec.ts
+│   ├── aggregates/                  # 聚合根基类
+│   │   ├── base.aggregate-root.ts
+│   │   ├── tenant-aware.aggregate-root.ts
+│   │   └── __tests__/
+│   │       ├── base.aggregate-root.spec.ts
+│   │       └── tenant-aware.aggregate-root.spec.ts
+│   ├── value-objects/               # 值对象基类
+│   │   ├── entity-id.value-object.ts
+│   │   ├── tenant-id.value-object.ts
 │   │   ├── user-id.value-object.ts
-│   │   ├── user-id.value-object.spec.ts
-│   │   ├── user-status.value-object.ts
-│   │   └── user-status.value-object.spec.ts
-│   ├── events/                      # 领域事件
-│   │   ├── user-created.event.ts
-│   │   ├── user-created.event.spec.ts
-│   │   ├── user-updated.event.ts
-│   │   └── user-updated.event.spec.ts
-│   ├── services/                    # 领域服务
-│   │   ├── user-domain.service.ts
-│   │   └── user-domain.service.spec.ts
-│   ├── specifications/              # 规约
-│   │   ├── active-user.specification.ts
-│   │   ├── active-user.specification.spec.ts
-│   │   ├── admin-user.specification.ts
-│   │   └── admin-user.specification.spec.ts
-│   └── interfaces/                  # 领域接口
-│       ├── user-repository.interface.ts
-│       └── user-service.interface.ts
-├── application/                     # 应用层
-│   ├── commands/                    # 命令
-│   │   ├── create-user.command.ts
-│   │   ├── update-user.command.ts
-│   │   └── delete-user.command.ts
-│   ├── queries/                     # 查询
-│   │   ├── get-user.query.ts
-│   │   ├── get-users.query.ts
-│   │   └── search-users.query.ts
-│   ├── handlers/                    # 处理器
-│   │   ├── commands/
-│   │   │   ├── create-user.handler.ts
-│   │   │   ├── create-user.handler.spec.ts
-│   │   │   ├── update-user.handler.ts
-│   │   │   ├── update-user.handler.spec.ts
-│   │   │   ├── delete-user.handler.ts
-│   │   │   └── delete-user.handler.spec.ts
-│   │   ├── queries/
-│   │   │   ├── get-user.handler.ts
-│   │   │   ├── get-user.handler.spec.ts
-│   │   │   ├── get-users.handler.ts
-│   │   │   ├── get-users.handler.spec.ts
-│   │   │   ├── search-users.handler.ts
-│   │   │   └── search-users.handler.spec.ts
-│   │   └── events/
-│   │       ├── user-created.handler.ts
-│   │       ├── user-created.handler.spec.ts
-│   │       ├── user-updated.handler.ts
-│   │       ├── user-updated.handler.spec.ts
-│   │       ├── user-deleted.handler.ts
-│   │       └── user-deleted.handler.spec.ts
-│   ├── services/                    # 应用服务
-│   │   ├── user.service.ts
-│   │   └── user.service.spec.ts
-│   └── dto/                         # 数据传输对象
-│       ├── create-user.dto.ts
-│       ├── update-user.dto.ts
-│       ├── user-response.dto.ts
-│       └── user-search.dto.ts
-├── infrastructure/                  # 基础设施层
-│   ├── persistence/                 # 持久化
-│   │   ├── repositories/
-│   │   │   ├── user.repository.ts
-│   │   │   └── user.repository.spec.ts
-│   │   └── entities/
-│   │       └── user.orm-entity.ts
-│   ├── messaging/                   # 消息
-│   │   └── event-publishers/
-│   │       ├── user-event.publisher.ts
-│   │       └── user-event.publisher.spec.ts
-│   └── external/                    # 外部服务
-│       └── ai/
-│           ├── user-ai.service.ts
-│           └── user-ai.service.spec.ts
-├── interfaces/                      # 接口层
-│   ├── rest/                        # REST API
-│   │   ├── controllers/
-│   │   │   ├── user.controller.ts
-│   │   │   └── user.controller.spec.ts
-│   │   └── guards/
-│   │       ├── user-permission.guard.ts
-│   │       └── user-permission.guard.spec.ts
-│   ├── graphql/                     # GraphQL
+│   │   └── __tests__/
+│   │       ├── entity-id.value-object.spec.ts
+│   │       ├── tenant-id.value-object.spec.ts
+│   │       └── user-id.value-object.spec.ts
+│   ├── events/                      # 领域事件基类
+│   │   ├── base.domain-event.ts
+│   │   ├── tenant-event.ts
+│   │   └── __tests__/
+│   │       ├── base.domain-event.spec.ts
+│   │       └── tenant-event.spec.ts
+│   ├── repositories/                # 仓库接口 (抽象)
+│   │   ├── base-repository.interface.ts
+│   │   ├── tenant-aware-repository.interface.ts
+│   │   └── event-sourcing-repository.interface.ts
+│   ├── services/                    # 领域服务接口 (抽象)
+│   │   └── domain-service.interface.ts
+│   ├── specifications/              # 规约模式接口 (抽象)
+│   │   └── base-specification.interface.ts
+│   └── factories/                   # 工厂接口 (抽象)
+│       ├── base-factory.interface.ts
+│       └── aggregate-factory.interface.ts
+├── application/                     # Application Layer (应用业务规则层)
+│   ├── commands/                    # 命令和命令处理器接口
+│   │   ├── base.command.ts
+│   │   ├── tenant.command.ts
+│   │   └── interfaces/
+│   │       ├── command-bus.interface.ts
+│   │       └── command-handler.interface.ts
+│   ├── queries/                     # 查询和查询处理器接口
+│   │   ├── base.query.ts
+│   │   ├── tenant.query.ts
+│   │   └── interfaces/
+│   │       ├── query-bus.interface.ts
+│   │       └── query-handler.interface.ts
+│   ├── services/                    # 应用服务接口
+│   │   └── interfaces/
+│   │       └── application-service.interface.ts
+│   └── use-cases/                   # 用例实现
+│       ├── create-user.use-case.ts
+│       ├── update-user.use-case.ts
+│       ├── delete-user.use-case.ts
+│       └── __tests__/
+│           ├── create-user.use-case.spec.ts
+│           ├── update-user.use-case.spec.ts
+│           └── delete-user.use-case.spec.ts
+├── infrastructure/                  # Infrastructure Layer (基础设施层)
+│   ├── repositories/                # 仓库实现
+│   │   ├── base.repository.ts
+│   │   ├── tenant-aware.repository.ts
+│   │   └── __tests__/
+│   │       ├── base.repository.spec.ts
+│   │       └── tenant-aware.repository.spec.ts
+│   ├── factories/                   # 工厂实现
+│   │   ├── base.factory.ts
+│   │   ├── aggregate.factory.ts
+│   │   └── __tests__/
+│   │       ├── base.factory.spec.ts
+│   │       └── aggregate.factory.spec.ts
+│   ├── commands/                    # 命令处理器实现
+│   │   ├── command-bus.ts
+│   │   └── __tests__/
+│   │       └── command-bus.spec.ts
+│   ├── queries/                     # 查询处理器实现
+│   │   ├── query-bus.ts
+│   │   └── __tests__/
+│   │       └── query-bus.spec.ts
+│   ├── events/                      # 事件处理器实现
+│   │   ├── event-bus.ts
+│   │   ├── event-store.ts
+│   │   └── __tests__/
+│   │       ├── event-bus.spec.ts
+│   │       └── event-store.spec.ts
+│   ├── persistence/                 # 数据库驱动、ORM等
+│   │   ├── entities/                # 数据库实体
+│   │   ├── mappers/                 # 领域实体到数据库实体映射器
+│   │   └── migrations/              # 数据库迁移脚本
+│   ├── messaging/                   # 消息队列驱动
+│   ├── external/                    # 外部服务驱动
+│   └── projections/                 # 读模型投射
+│       ├── user-projection.ts
+│       └── user-projection.spec.ts
+├── interfaces/                      # Interface Layer (接口层)
+│   ├── dto/                         # 数据传输对象实现
+│   │   ├── create-user.dto.ts
+│   │   ├── update-user.dto.ts
+│   │   ├── user-response.dto.ts
+│   │   └── user-search.dto.ts
+│   ├── rest/                        # REST API控制器
+│   │   ├── base.controller.ts
+│   │   ├── tenant.controller.ts
+│   │   └── __tests__/
+│   │       ├── base.controller.spec.ts
+│   │       └── tenant.controller.spec.ts
+│   ├── graphql/                     # GraphQL解析器
 │   │   ├── resolvers/
 │   │   │   ├── user.resolver.ts
 │   │   │   └── user.resolver.spec.ts
 │   │   └── schemas/
 │   │       └── user.schema.ts
-│   └── grpc/                        # gRPC
-│       ├── services/
-│       │   ├── user.service.ts
-│       │   └── user.service.spec.ts
-│       └── proto/
-│           └── user.proto
+│   ├── grpc/                        # gRPC服务
+│   │   ├── services/
+│   │   │   ├── user.service.ts
+│   │   │   └── user.service.spec.ts
+│   │   └── proto/
+│   │       └── user.proto
+│   └── messaging/                   # 消息接口实现
+│       ├── user-event.handler.ts
+│       └── user-event.handler.spec.ts
 ├── shared/                          # 共享组件
 │   ├── types/
 │   │   ├── user.types.ts

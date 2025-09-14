@@ -44,6 +44,7 @@
  * 
  * @description 用户聚合根是用户领域模型的核心，封装了用户相关的所有业务规则和约束。
  * 继承自TenantAwareAggregateRoot，支持多租户架构和事件驱动设计。
+ * 遵循Clean Architecture的Domain Layer设计原则。
  * 
  * ## 业务规则
  * 
