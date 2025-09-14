@@ -22,7 +22,7 @@ describe('EntityId', () => {
 
   describe('fromString', () => {
     it('应该从有效的UUID字符串创建EntityId', () => {
-      const uuidString = '123e4567-e89b-12d3-4567-426614174000';
+      const uuidString = '123e4567-e89b-42d3-a567-426614174000';
       const entityId = EntityId.fromString(uuidString);
 
       expect(entityId).toBeInstanceOf(EntityId);
@@ -52,7 +52,7 @@ describe('EntityId', () => {
 
   describe('equals', () => {
     it('应该返回true当两个EntityId的值相等时', () => {
-      const uuidString = '123e4567-e89b-12d3-4567-426614174000';
+      const uuidString = '123e4567-e89b-42d3-a567-426614174000';
       const entityId1 = EntityId.fromString(uuidString);
       const entityId2 = EntityId.fromString(uuidString);
 
@@ -61,10 +61,10 @@ describe('EntityId', () => {
 
     it('应该返回false当两个EntityId的值不相等时', () => {
       const entityId1 = EntityId.fromString(
-        '123e4567-e89b-12d3-4567-426614174000'
+        '123e4567-e89b-42d3-a567-426614174000'
       );
       const entityId2 = EntityId.fromString(
-        '123e4567-e89b-12d3-4567-426614174001'
+        '123e4567-e89b-42d3-b567-426614174001'
       );
 
       expect(entityId1.equals(entityId2)).toBe(false);
@@ -73,7 +73,7 @@ describe('EntityId', () => {
 
   describe('toString', () => {
     it('应该返回UUID字符串', () => {
-      const uuidString = '123e4567-e89b-12d3-4567-426614174000';
+      const uuidString = '123e4567-e89b-42d3-a567-426614174000';
       const entityId = EntityId.fromString(uuidString);
 
       expect(entityId.toString()).toBe(uuidString);
@@ -82,7 +82,7 @@ describe('EntityId', () => {
 
   describe('toJSON', () => {
     it('应该返回UUID字符串', () => {
-      const uuidString = '123e4567-e89b-12d3-4567-426614174000';
+      const uuidString = '123e4567-e89b-42d3-a567-426614174000';
       const entityId = EntityId.fromString(uuidString);
 
       expect(entityId.toJSON()).toBe(uuidString);

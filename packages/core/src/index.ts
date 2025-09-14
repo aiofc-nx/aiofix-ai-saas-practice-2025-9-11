@@ -22,6 +22,15 @@ export * from './domain/events';
 // 应用层（CQRS）
 export * from './application';
 
+// 仓储接口
+export * from './domain/repositories';
+
+// 工厂接口
+export * from './domain/factories';
+
+// 规约接口
+export * from './domain/specifications';
+
 // 共享类型
 export * from './shared/types';
 
