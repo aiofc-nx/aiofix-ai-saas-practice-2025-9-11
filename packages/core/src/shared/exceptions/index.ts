@@ -8,3 +8,7 @@
  */
 
 export { BaseException } from './base.exception';
+
+// CQRS异常
+export * from './cqrs-exceptions';
+export * from './unhandled-exception-bus';

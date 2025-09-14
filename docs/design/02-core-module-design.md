@@ -6,7 +6,7 @@ Core模块是Aiofix-AI-SaaS平台的核心基础架构库，为所有业务领�
 
 Core模块内置了完整的CQRS功能，并扩展了多租户、多组织、AI能力集成等企业级功能，为业务领域模块提供标准化的开发基础。通过内置CQRS，我们可以完全控制其行为并与平台的其他功能深度集成。
 
-参考：
+开发CQRS时，我们需要参考：
 @nestjs/cqrs官方源码`forks/cqrs`
 
 ## 设计目标
@@ -34,26 +34,43 @@ Core模块内置了完整的CQRS功能，并扩展了多租户、多组织、AI�
 基于 Clean Architecture 的正确分层结构：
 
 ```text
-libs/core/
+packages/core/src/
 ├── domain/                   # Domain Layer (企业业务规则层)
 │   ├── entities/             # 领域实体基类
+│   │   ├── base.entity.ts                    # 基础实体类
+│   │   ├── tenant-aware.entity.ts            # 租户感知实体类
+│   │   ├── organization-aware.entity.ts      # 组织感知实体类
+│   │   └── department-aware.entity.ts        # 部门感知实体类
 │   ├── aggregates/           # 聚合根基类
+│   │   ├── base.aggregate-root.ts            # 基础聚合根类
+│   │   ├── tenant-aware.aggregate-root.ts    # 租户感知聚合根类
+│   │   ├── organization-aware.aggregate-root.ts # 组织感知聚合根类
+│   │   └── department-aware.aggregate-root.ts   # 部门感知聚合根类
 │   ├── value-objects/        # 值对象基类
+│   │   ├── entity-id.ts                      # 实体ID值对象
+│   │   ├── tenant-id.ts                      # 租户ID值对象
+│   │   ├── organization-id.ts                # 组织ID值对象
+│   │   └── user-id.ts                        # 用户ID值对象
 │   ├── events/               # 领域事件基类
 │   ├── repositories/         # 仓库接口 (抽象)
 │   ├── services/             # 领域服务接口 (抽象)
-│   └── specifications/       # 规约模式接口 (抽象)
+│   ├── specifications/       # 规约模式接口 (抽象)
+│   └── factories/            # 工厂接口 (抽象)
 ├── application/              # Application Layer (应用业务规则层)
 │   ├── commands/             # 命令和命令处理器接口
 │   ├── queries/              # 查询和查询处理器接口
+│   ├── events/               # 事件和事件处理器接口
 │   ├── services/             # 应用服务接口
+│   ├── handlers/             # 处理器基类
 │   └── use-cases/            # 用例实现
 ├── infrastructure/           # Infrastructure Layer (基础设施层)
 │   ├── repositories/         # 仓库实现 (连接领域和持久化)
 │   ├── services/             # 应用服务实现
-│   ├── command-handlers/     # 命令处理器实现
-│   ├── query-handlers/       # 查询处理器实现
-│   ├── event-handlers/       # 事件处理器实现
+│   ├── commands/             # 命令处理器实现
+│   ├── queries/              # 查询处理器实现
+│   ├── events/               # 事件处理器实现
+│   │   ├── bus/              # 事件总线实现
+│   │   └── projectors/       # 事件投射器 (Event Projectors)
 │   ├── persistence/          # 数据库驱动、ORM等
 │   │   ├── entities/         # 数据库实体 (Database Entities)
 │   │   ├── mappers/          # 领域实体到数据库实体映射器
@@ -61,22 +78,34 @@ libs/core/
 │   ├── messaging/            # 消息队列驱动
 │   ├── external/             # 外部服务驱动
 │   ├── cqrs/                 # CQRS框架实现 (CommandBus, QueryBus等)
-│   ├── events/               # 事件总线实现
-│   │   ├── bus/              # 事件总线实现
-│   │   └── projectors/       # 事件投射器 (Event Projectors)
-│   └── projections/          # 读模型投射 (Read Model Projections)
-└── interfaces/               # Interface Layer (接口层)
-    ├── dto/                  # 数据传输对象实现
-    ├── rest/                 # REST API控制器
-    ├── graphql/              # GraphQL解析器
-    ├── grpc/                 # gRPC服务
-    └── messaging/            # 消息接口实现
+│   ├── projections/          # 读模型投射 (Read Model Projections)
+│   └── factories/            # 工厂实现
+├── interfaces/               # Interface Layer (接口层)
+│   ├── rest/                 # REST API控制器
+│   ├── graphql/              # GraphQL解析器
+│   ├── grpc/                 # gRPC服务
+│   └── messaging/            # 消息接口实现
 ├── shared/                   # 共享组件
 │   ├── types/                # 通用类型
+│   │   ├── common.ts                         # 通用类型定义
+│   │   └── value-object.ts                   # 值对象基类
 │   ├── utils/                # 工具函数
+│   │   ├── tenant.utils.ts                   # 租户上下文工具
+│   │   ├── event.utils.ts                    # 事件工具
+│   │   └── tenant-data-filter.ts             # 租户数据过滤器
 │   ├── decorators/           # 装饰器
+│   │   ├── command-handler.decorator.ts      # 命令处理器装饰器
+│   │   ├── query-handler.decorator.ts        # 查询处理器装饰器
+│   │   ├── event-handler.decorator.ts        # 事件处理器装饰器
+│   │   └── tenant.decorators.ts              # 租户相关装饰器
 │   ├── validators/           # 验证器
-│   └── constants/            # 常量定义
+│   ├── constants/            # 常量定义
+│   ├── exceptions/           # 异常类
+│   ├── context/              # 异步上下文
+│   ├── publishers/           # 发布者模式
+│   ├── sagas/                # Saga支持
+│   ├── operators/            # 增强RxJS操作符
+│   └── middleware/           # 中间件支持
 └── core.module.ts            # Core模块定义
 ```
 
@@ -972,22 +1001,22 @@ abstract class OrganizationResolver extends TenantResolver {
 
 ```typescript
 // 结果类型
-type Result<T, E = Error> = Success<T> | Failure<E>;
+export type ResultType<T, E = Error> = Success<T> | Failure<E>;
 
-class Success<T> {
+export class Success<T> {
   constructor(public readonly data: T) {}
   isSuccess(): this is Success<T> { return true; }
   isFailure(): this is Failure<never> { return false; }
 }
 
-class Failure<E> {
+export class Failure<E> {
   constructor(public readonly error: E) {}
   isSuccess(): this is Success<never> { return false; }
   isFailure(): this is Failure<E> { return true; }
 }
 
 // 分页结果
-interface PaginatedResult<T> {
+export interface PaginatedResult<T> {
   data: T[];
   total: number;
   page: number;
@@ -995,125 +1024,365 @@ interface PaginatedResult<T> {
   hasNext: boolean;
   hasPrev: boolean;
 }
+
+// 时间戳类型
+export type Timestamp = Date;
 ```
 
-#### 工具函数 (Utilities)
+#### 值对象基类 (Value Object Base)
 
 ```typescript
-// UUID工具类
-class UUIDUtils {
-  /**
-   * 生成UUID v4
-   * @returns 标准格式的UUID v4字符串
-   */
-  static generate(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      const r = Math.random() * 16 | 0;
-      const v = c == 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
+// 值对象基类
+export abstract class ValueObject {
+  public equals(other: ValueObject): boolean {
+    if (other === null || other === undefined) {
+      return false;
+    }
+    if (this === other) {
+      return true;
+    }
+    if (this.constructor !== other.constructor) {
+      return false;
+    }
+    return this.equalsInternal(other);
   }
 
-  /**
-   * 验证UUID格式
-   * @param uuid 待验证的UUID字符串
-   * @returns 是否为有效的UUID格式
-   */
-  static isValid(uuid: string): boolean {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    return uuidRegex.test(uuid);
+  protected abstract equalsInternal(other: ValueObject): boolean;
+
+  public toString(): string {
+    return this.getValue().toString();
   }
 
-  /**
-   * 生成短UUID（去掉连字符）
-   * @returns 32位十六进制字符串
-   */
-  static generateShort(): string {
-    return this.generate().replace(/-/g, '');
+  public toJSON(): any {
+    return this.getValue();
   }
-}
 
-// 租户上下文工具
-class TenantContextUtils {
-  static extractFromRequest(req: Request): TenantContext {
-    return {
-      tenantId: TenantId.fromString(req.headers['x-tenant-id'] as string),
-      userId: UserId.fromString(req.headers['x-user-id'] as string),
-      organizationId: req.headers['x-organization-id'] ? 
-        OrganizationId.fromString(req.headers['x-organization-id'] as string) : undefined,
-      departmentId: req.headers['x-department-id'] ? 
-        EntityId.fromString(req.headers['x-department-id'] as string) : undefined,
-      permissions: req.headers['x-permissions'] ? 
-        (req.headers['x-permissions'] as string).split(',') : [],
-      features: req.headers['x-features'] ? 
-        (req.headers['x-features'] as string).split(',') : []
-    };
-  }
-}
-
-// 事件工具
-class EventUtils {
-  static createEvent<T extends DomainEvent>(
-    eventClass: new (...args: any[]) => T,
-    ...args: any[]
-  ): T {
-    return new eventClass(...args);
-  }
+  protected abstract getValue(): any;
 }
 ```
 
-#### 装饰器 (Decorators)
+#### 工具类 (Utilities)
 
 ```typescript
-// 租户验证装饰器
-function RequireTenant(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-  const originalMethod = descriptor.value;
-  descriptor.value = async function (...args: any[]) {
-    const req = args[0] as Request;
-    if (!req.tenantContext?.tenantId) {
-      throw new UnauthorizedError('Tenant context required');
-    }
-    return originalMethod.apply(this, args);
-  };
+// 租户上下文工具类
+export class TenantContextUtils {
+  // 从请求中提取租户上下文
+  static extractFromRequest(req: RequestWithTenantContext): TenantContext;
+  
+  // 检查用户权限
+  static hasPermission(context: TenantContext, permission: string): boolean;
+  static hasAnyPermission(context: TenantContext, permissions: string[]): boolean;
+  static hasAllPermissions(context: TenantContext, permissions: string[]): boolean;
+  
+  // 检查租户功能
+  static hasFeature(context: TenantContext, feature: string): boolean;
+  static hasAnyFeature(context: TenantContext, features: string[]): boolean;
+  static hasAllFeatures(context: TenantContext, features: string[]): boolean;
+  
+  // 验证租户上下文
+  static validateContext(context: TenantContext): boolean;
+  
+  // 创建和合并上下文
+  static createContext(tenantId: TenantId, userId: UserId, options?: any): TenantContext;
+  static mergeContexts(contexts: TenantContext[]): TenantContext;
+  static cloneContext(context: TenantContext): TenantContext;
 }
 
-// 权限验证装饰器
-function RequirePermission(permission: string) {
-  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-    const originalMethod = descriptor.value;
-    descriptor.value = async function (...args: any[]) {
-      const req = args[0] as Request;
-      if (!req.userContext?.permissions?.includes(permission)) {
-        throw new ForbiddenError(`Permission '${permission}' required`);
-      }
-      return originalMethod.apply(this, args);
-    };
-  };
+// 事件工具类
+export class EventUtils {
+  // 创建领域事件
+  static createEvent<T extends DomainEvent>(eventClass: new (...args: any[]) => T, params: any): T;
+  
+  // 验证事件
+  static validateEvent(event: DomainEvent): boolean;
+  static validateEvents(events: DomainEvent[]): boolean;
+  
+  // 事件分组
+  static groupEventsByAggregateId(events: DomainEvent[]): Map<string, DomainEvent[]>;
+  static groupEventsByTenantId(events: DomainEvent[]): Map<string, DomainEvent[]>;
+  static groupEventsByType(events: DomainEvent[]): Map<string, DomainEvent[]>;
+  
+  // 事件过滤和排序
+  static filterEvents(events: DomainEvent[], predicate: (event: DomainEvent) => boolean): DomainEvent[];
+  static sortEventsByTime(events: DomainEvent[], ascending?: boolean): DomainEvent[];
+  
+  // 事件统计
+  static getEventStats(events: DomainEvent[]): EventStats;
+  
+  // 事件序列化
+  static serializeEvent(event: DomainEvent): string;
+  static deserializeEvent<T extends DomainEvent>(json: string, eventClass: new (...args: any[]) => T): T;
+  static serializeEvents(events: DomainEvent[]): string[];
+  static deserializeEvents<T extends DomainEvent>(jsonArray: string[], eventClass: new (...args: any[]) => T): T[];
 }
 
-// 组织验证装饰器
-function RequireOrganization(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-  const originalMethod = descriptor.value;
-  descriptor.value = async function (...args: any[]) {
-    const req = args[0] as Request;
-    if (!req.tenantContext?.organizationId) {
-      throw new ForbiddenError('Organization context required');
-    }
-    return originalMethod.apply(this, args);
-  };
+// 租户数据过滤器
+export class TenantDataFilter {
+  // 添加过滤器
+  static addTenantFilter(query: any, tenantId: TenantId): any;
+  static addOrganizationFilter(query: any, organizationId: OrganizationId): any;
+  static addDepartmentFilter(query: any, departmentId: EntityId): any;
+  static addMultiLevelFilter(query: any, filters: any): any;
+  
+  // 验证访问权限
+  static validateTenantAccess(entity: TenantAwareEntity, tenantId: TenantId): void;
+  static validateOrganizationAccess(entity: OrganizationAwareEntity, organizationId: OrganizationId): void;
+  static validateDepartmentAccess(entity: DepartmentAwareEntity, departmentId: EntityId): void;
+  static validateMultiLevelAccess(entity: any, context: any): void;
+  
+  // 过滤数据
+  static filterByTenant<T extends TenantAwareEntity>(entities: T[], tenantId: TenantId): T[];
+  static filterByOrganization<T extends OrganizationAwareEntity>(entities: T[], organizationId: OrganizationId): T[];
+  static filterByDepartment<T extends DepartmentAwareEntity>(entities: T[], departmentId: EntityId): T[];
+  static filterByMultiLevel<T extends TenantAwareEntity>(entities: T[], context: any): T[];
+  
+  // 查询构建和验证
+  static createTenantQueryBuilder(tenantId: TenantId): QueryBuilder;
+  static validateQueryPermissions(query: any, requiredContext: any): void;
+}
+```
+
+#### 异步上下文 (Async Context)
+
+```typescript
+// 异步上下文接口
+export interface IAsyncContext<T = any> {
+  get(key: string): T | undefined;
+  set(key: string, value: T): void;
+  has(key: string): boolean;
+  delete(key: string): boolean;
+  clear(): void;
+  toObject(): Record<string, T>;
+  clone(): IAsyncContext<T>;
 }
 
-// 部门验证装饰器
-function RequireDepartment(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
-  const originalMethod = descriptor.value;
-  descriptor.value = async function (...args: any[]) {
-    const req = args[0] as Request;
-    if (!req.tenantContext?.departmentId) {
-      throw new ForbiddenError('Department context required');
-    }
-    return originalMethod.apply(this, args);
-  };
+// 异步上下文实现
+export class AsyncContext<T = any> implements IAsyncContext<T> {
+  private data = new Map<string, T>();
+  
+  get(key: string): T | undefined;
+  set(key: string, value: T): void;
+  has(key: string): boolean;
+  delete(key: string): boolean;
+  clear(): void;
+  toObject(): Record<string, T>;
+  clone(): IAsyncContext<T>;
 }
+
+// 上下文提供者
+export class ContextProvider {
+  static getCurrentContext(): IAsyncContext | undefined;
+  static setCurrentContext(context: IAsyncContext): void;
+  static clearCurrentContext(): void;
+  static runWithContext<T>(context: IAsyncContext, fn: () => T): T;
+  static runWithNewContext<T>(fn: () => T): T;
+}
+
+// 上下文工厂
+export class ContextFactory {
+  static createTenantContext(tenantId: TenantId, userId: UserId): IAsyncContext;
+  static createRequestContext(requestId: string, userAgent?: string): IAsyncContext;
+  static createCorrelationContext(correlationId: string): IAsyncContext;
+  static createExecutionContext(taskId: string, priority?: number): IAsyncContext;
+}
+```
+
+#### 发布者模式 (Publisher Pattern)
+
+```typescript
+// 发布者接口
+export interface ICommandPublisher {
+  publish<T>(command: ICommand): Observable<T>;
+  publishAll<T>(commands: ICommand[]): Observable<T[]>;
+}
+
+export interface IQueryPublisher {
+  publish<T>(query: IQuery): Observable<T>;
+  publishAll<T>(queries: IQuery[]): Observable<T[]>;
+}
+
+export interface IEventPublisher {
+  publish(event: IEvent): Observable<void>;
+  publishAll(events: IEvent[]): Observable<void>;
+}
+
+// 基础发布者
+export abstract class BasePublisher<TMessage, TResult = any> {
+  protected config: IPublisherConfig;
+  protected logger: Logger;
+  
+  constructor(config: IPublisherConfig, logger: Logger);
+  abstract publish(message: TMessage): Observable<TResult>;
+  abstract publishAll(messages: TMessage[]): Observable<TResult[]>;
+}
+
+// 命令发布者
+export class CommandPublisher extends BasePublisher<ICommand, any> implements ICommandPublisher {
+  publish<T>(command: ICommand): Observable<T>;
+  publishAll<T>(commands: ICommand[]): Observable<T[]>;
+}
+
+// 查询发布者
+export class QueryPublisher extends BasePublisher<IQuery, any> implements IQueryPublisher {
+  publish<T>(query: IQuery): Observable<T>;
+  publishAll<T>(queries: IQuery[]): Observable<T[]>;
+}
+
+// 事件发布者
+export class EventPublisher extends BasePublisher<IEvent, void> implements IEventPublisher {
+  publish(event: IEvent): Observable<void>;
+  publishAll(events: IEvent[]): Observable<void>;
+}
+
+// 发布者工厂
+export class PublisherFactory {
+  static createCommandPublisher(config: IPublisherConfig): ICommandPublisher;
+  static createQueryPublisher(config: IPublisherConfig): IQueryPublisher;
+  static createEventPublisher(config: IPublisherConfig): IEventPublisher;
+}
+```
+
+#### Saga支持 (Saga Support)
+
+```typescript
+// Saga接口
+export interface ISaga<TState = any> {
+  readonly sagaId: string;
+  readonly name: string;
+  readonly config: ISagaConfig;
+  execute(event: IEvent, context: ISagaExecutionContext): Observable<ISagaStep[]>;
+  compensate(state: TState, context: ISagaExecutionContext): Observable<void>;
+}
+
+// Saga事件总线
+export interface ISagaEventBus {
+  publish(event: IEvent): Observable<void>;
+  subscribe(eventType: string, saga: ISaga): void;
+  unsubscribe(eventType: string, saga: ISaga): void;
+}
+
+// Saga执行器
+export interface ISagaExecutor {
+  execute(saga: ISaga, event: IEvent, context: ISagaExecutionContext): Observable<ISagaStep[]>;
+  compensate(saga: ISaga, state: any, context: ISagaExecutionContext): Observable<void>;
+}
+
+// Saga管理器
+export interface ISagaManager {
+  registerSaga(saga: ISaga): void;
+  unregisterSaga(sagaId: string): void;
+  getSaga(sagaId: string): ISaga | undefined;
+  getAllSagas(): ISaga[];
+  executeSaga(sagaId: string, event: IEvent, context: ISagaExecutionContext): Observable<ISagaStep[]>;
+}
+
+// Saga装饰器
+export function Saga(config: ISagaConfig): ClassDecorator;
+```
+
+#### 增强RxJS操作符 (Enhanced RxJS Operators)
+
+```typescript
+// 操作符配置
+export interface IOperatorConfig {
+  enableCaching?: boolean;
+  enableMetrics?: boolean;
+  enableErrorHandling?: boolean;
+  enablePerformanceMonitoring?: boolean;
+  cacheTimeout?: number;
+  metricsInterval?: number;
+  retryAttempts?: number;
+  retryDelay?: number;
+}
+
+// 增强的ofType操作符
+export class EnhancedOfTypeOperator<T> implements IEnhancedOperator<T, T> {
+  constructor(private eventTypes: string[], private config: IOperatorConfig);
+  
+  call(source: Observable<T>, subscriber: Subscriber<T>): TeardownLogic;
+  getConfig(): IOperatorConfig;
+  getMetrics(): IOperatorMetrics;
+  clearMetrics(): void;
+  enableCaching(): void;
+  disableCaching(): void;
+  clearCache(): void;
+}
+
+// 操作符工厂
+export class OperatorFactory {
+  static createEnhancedOfType<T>(eventTypes: string[], config?: IOperatorConfig): IEnhancedOperator<T, T>;
+  static createCachedOperator<T, R>(operator: OperatorFunction<T, R>, config?: IOperatorConfig): IEnhancedOperator<T, R>;
+  static createMetricsOperator<T, R>(operator: OperatorFunction<T, R>, config?: IOperatorConfig): IEnhancedOperator<T, R>;
+}
+```
+
+#### 中间件支持 (Middleware Support)
+
+```typescript
+// 中间件接口
+export interface IMiddleware<TRequest = any, TResponse = any> {
+  readonly name: string;
+  readonly priority: number;
+  readonly config: IMiddlewareConfig;
+  readonly logger: Logger;
+  execute(request: IMiddlewareRequest<TRequest>, next: () => Observable<IMiddlewareResponse<TResponse>>): Observable<IMiddlewareResponse<TResponse>>;
+  getStats(): IMiddlewareStats;
+  clearStats(): void;
+}
+
+// 基础中间件
+export abstract class BaseMiddleware<TRequest = any, TResponse = any> implements IMiddleware<TRequest, TResponse> {
+  public readonly name: string;
+  public readonly priority: number;
+  public readonly config: IMiddlewareConfig;
+  public readonly logger: Logger;
+  
+  constructor(name: string, config: IMiddlewareConfig, priority: number);
+  abstract processRequest(request: IMiddlewareRequest<TRequest>, next: () => Observable<IMiddlewareResponse<TResponse>>): Observable<IMiddlewareResponse<TResponse>>;
+  execute(request: IMiddlewareRequest<TRequest>, next: () => Observable<IMiddlewareResponse<TResponse>>): Observable<IMiddlewareResponse<TResponse>>;
+}
+
+// 日志中间件
+export class LoggingMiddleware extends BaseMiddleware<any, any> {
+  constructor(config?: LoggingMiddlewareConfig, priority?: number);
+  processRequest(request: IMiddlewareRequest<any>, next: () => Observable<IMiddlewareResponse<any>>): Observable<IMiddlewareResponse<any>>;
+}
+
+// 指标中间件
+export class MetricsMiddleware extends BaseMiddleware<any, any> {
+  constructor(config?: MetricsMiddlewareConfig, priority?: number);
+  processRequest(request: IMiddlewareRequest<any>, next: () => Observable<IMiddlewareResponse<any>>): Observable<IMiddlewareResponse<any>>;
+  getMetrics(): MetricsData;
+}
+
+// 中间件链
+export class MiddlewareChain<TRequest = any, TResponse = any> implements IMiddlewareChain<TRequest, TResponse> {
+  private middlewares: IMiddleware<TRequest, TResponse>[] = [];
+  
+  addMiddleware(middleware: IMiddleware<TRequest, TResponse>): void;
+  removeMiddleware(name: string): void;
+  execute(request: IMiddlewareRequest<TRequest>): Observable<IMiddlewareResponse<TResponse>>;
+  getStats(): IMiddlewareChainStats;
+  clearStats(): void;
+}
+
+// 中间件管理器
+export class MiddlewareManager implements IMiddlewareManager {
+  private middlewareChains = new Map<string, IMiddlewareChain>();
+  
+  createChain(name: string, config?: any): IMiddlewareChain;
+  getChain(name: string): IMiddlewareChain | undefined;
+  removeChain(name: string): boolean;
+  getAllChains(): IMiddlewareChain[];
+  registerMiddleware(chainName: string, middleware: IMiddleware): void;
+  unregisterMiddleware(chainName: string, middlewareName: string): void;
+  executeChain(chainName: string, request: any): Observable<any>;
+}
+
+// 中间件装饰器
+export function Middleware(options?: MiddlewareDecoratorOptions): ClassDecorator;
+export function MiddlewareChain(names: string[], config?: any): ClassDecorator;
+export function MiddlewareFactory(name: string, priority?: number, config?: IMiddlewareConfig): MethodDecorator;
 ```
 
 ## 多租户支持
@@ -1131,23 +1400,35 @@ interface TenantContext {
   features: string[];
 }
 
-// 租户上下文中间件
-@Injectable()
-export class TenantContextMiddleware implements NestMiddleware {
-  constructor(private tenantService: TenantService) {}
+// 租户上下文工具类
+export class TenantContextUtils {
+  // 从请求中提取租户上下文
+  static extractFromRequest(req: RequestWithTenantContext): TenantContext {
+    const tenantId = (req.headers as any)['x-tenant-id'] as string;
+    const userId = (req.headers as any)['x-user-id'] as string;
+    const organizationId = (req.headers as any)['x-organization-id'] as string;
+    const departmentId = (req.headers as any)['x-department-id'] as string;
+    const permissions = (req.headers as any)['x-permissions'] as string;
+    const features = (req.headers as any)['x-features'] as string;
 
-  async use(req: Request, res: Response, next: NextFunction) {
-    const tenantId = this.extractTenantId(req);
-    const tenant = await this.tenantService.getTenant(tenantId);
-    
-    req.tenantContext = {
-      tenantId: TenantId.fromString(tenant.id),
-      userId: UserId.fromString(this.extractUserId(req)),
-      permissions: tenant.permissions,
-      features: tenant.features
+    return {
+      tenantId: TenantId.fromString(tenantId),
+      userId: UserId.fromString(userId),
+      organizationId: organizationId ? OrganizationId.fromString(organizationId) : undefined,
+      departmentId: departmentId ? EntityId.fromString(departmentId) : undefined,
+      permissions: permissions ? permissions.split(',').map(p => p.trim()) : [],
+      features: features ? features.split(',').map(f => f.trim()) : [],
     };
-    
-    next();
+  }
+
+  // 检查用户权限
+  static hasPermission(context: TenantContext, permission: string): boolean {
+    return context.permissions.includes(permission);
+  }
+
+  // 检查租户功能
+  static hasFeature(context: TenantContext, feature: string): boolean {
+    return context.features.includes(feature);
   }
 }
 ```
@@ -1156,16 +1437,193 @@ export class TenantContextMiddleware implements NestMiddleware {
 
 ```typescript
 // 租户数据过滤器
-class TenantDataFilter {
+export class TenantDataFilter {
+  // 添加租户过滤器
   static addTenantFilter(query: any, tenantId: TenantId): any {
     return { ...query, tenantId: tenantId.toString() };
   }
 
+  // 添加组织过滤器
+  static addOrganizationFilter(query: any, organizationId: OrganizationId): any {
+    return { ...query, organizationId: organizationId.toString() };
+  }
+
+  // 添加部门过滤器
+  static addDepartmentFilter(query: any, departmentId: EntityId): any {
+    return { ...query, departmentId: departmentId.toString() };
+  }
+
+  // 验证租户访问权限
   static validateTenantAccess(entity: TenantAwareEntity, tenantId: TenantId): void {
-    if (!entity.tenantId.equals(tenantId)) {
-      throw new ForbiddenError('Access denied: different tenant');
+    if (!entity.belongsToTenant(tenantId)) {
+      throw new Error('Access denied: different tenant');
     }
   }
+
+  // 验证组织访问权限
+  static validateOrganizationAccess(entity: OrganizationAwareEntity, organizationId: OrganizationId): void {
+    if (!entity.belongsToOrganization(organizationId)) {
+      throw new Error('Access denied: different organization');
+    }
+  }
+
+  // 验证部门访问权限
+  static validateDepartmentAccess(entity: DepartmentAwareEntity, departmentId: EntityId): void {
+    if (!entity.belongsToDepartment(departmentId)) {
+      throw new Error('Access denied: different department');
+    }
+  }
+}
+```
+
+### 租户感知实体和聚合根
+
+```typescript
+// 租户感知实体
+export abstract class TenantAwareEntity extends BaseEntity {
+  private readonly _tenantId: TenantId;
+  private readonly _createdBy: UserId;
+  private _updatedBy: UserId;
+
+  constructor(
+    id: EntityId,
+    tenantId: TenantId,
+    createdBy: UserId,
+    createdAt?: Timestamp,
+    updatedAt?: Timestamp,
+    updatedBy?: UserId
+  ) {
+    super(id, createdAt, updatedAt);
+    this._tenantId = tenantId;
+    this._createdBy = createdBy;
+    this._updatedBy = updatedBy || createdBy;
+  }
+
+  public getTenantId(): TenantId { return this._tenantId; }
+  public belongsToTenant(tenantId: TenantId): boolean {
+    return this._tenantId.equals(tenantId);
+  }
+}
+
+// 组织感知实体
+export abstract class OrganizationAwareEntity extends TenantAwareEntity {
+  private readonly _organizationId: OrganizationId;
+
+  constructor(
+    id: EntityId,
+    tenantId: TenantId,
+    organizationId: OrganizationId,
+    createdBy: UserId,
+    createdAt?: Timestamp,
+    updatedAt?: Timestamp,
+    updatedBy?: UserId
+  ) {
+    super(id, tenantId, createdBy, createdAt, updatedAt, updatedBy);
+    this._organizationId = organizationId;
+  }
+
+  public getOrganizationId(): OrganizationId { return this._organizationId; }
+  public belongsToOrganization(organizationId: OrganizationId): boolean {
+    return this._organizationId.equals(organizationId);
+  }
+}
+
+// 部门感知实体
+export abstract class DepartmentAwareEntity extends TenantAwareEntity {
+  private readonly _departmentId: EntityId;
+
+  constructor(
+    id: EntityId,
+    tenantId: TenantId,
+    departmentId: EntityId,
+    createdBy: UserId,
+    createdAt?: Timestamp,
+    updatedAt?: Timestamp,
+    updatedBy?: UserId
+  ) {
+    super(id, tenantId, createdBy, createdAt, updatedAt, updatedBy);
+    this._departmentId = departmentId;
+  }
+
+  public getDepartmentId(): EntityId { return this._departmentId; }
+  public belongsToDepartment(departmentId: EntityId): boolean {
+    return this._departmentId.equals(departmentId);
+  }
+}
+```
+
+### 租户相关装饰器
+
+```typescript
+// 租户验证装饰器
+export function RequireTenant(
+  target: any,
+  propertyKey: string,
+  descriptor: PropertyDescriptor
+): void {
+  const originalMethod = descriptor.value;
+  descriptor.value = async function (...args: any[]) {
+    const req = args.find(arg => arg && typeof arg === 'object' && 'tenantContext' in arg) as RequestWithTenantContext;
+    
+    if (!req?.tenantContext?.tenantId) {
+      throw new UnauthorizedError('Tenant context required');
+    }
+    
+    return originalMethod.apply(this, args);
+  };
+}
+
+// 权限验证装饰器
+export function RequirePermission(permission: string) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor): void {
+    const originalMethod = descriptor.value;
+    descriptor.value = async function (...args: any[]) {
+      const req = args.find(arg => arg && typeof arg === 'object' && 'tenantContext' in arg) as RequestWithTenantContext;
+      
+      const userPermissions = req.tenantContext.permissions || [];
+      if (!userPermissions.includes(permission)) {
+        throw new ForbiddenError(`Permission '${permission}' required`);
+      }
+      
+      return originalMethod.apply(this, args);
+    };
+  };
+}
+
+// 组织验证装饰器
+export function RequireOrganization(
+  target: any,
+  propertyKey: string,
+  descriptor: PropertyDescriptor
+): void {
+  const originalMethod = descriptor.value;
+  descriptor.value = async function (...args: any[]) {
+    const req = args.find(arg => arg && typeof arg === 'object' && 'tenantContext' in arg) as RequestWithTenantContext;
+    
+    if (!req.tenantContext.organizationId) {
+      throw new ForbiddenError('Organization context required');
+    }
+    
+    return originalMethod.apply(this, args);
+  };
+}
+
+// 部门验证装饰器
+export function RequireDepartment(
+  target: any,
+  propertyKey: string,
+  descriptor: PropertyDescriptor
+): void {
+  const originalMethod = descriptor.value;
+  descriptor.value = async function (...args: any[]) {
+    const req = args.find(arg => arg && typeof arg === 'object' && 'tenantContext' in arg) as RequestWithTenantContext;
+    
+    if (!req.tenantContext.departmentId) {
+      throw new ForbiddenError('Department context required');
+    }
+    
+    return originalMethod.apply(this, args);
+  };
 }
 ```
 
@@ -1839,35 +2297,102 @@ export class UserMapper {
 
 ## 总结
 
-Core模块为Aiofix-AI-SaaS平台提供了基于 Clean Architecture 的统一技术架构基础，内置完整的CQRS功能，包括：
+Core模块为Aiofix-AI-SaaS平台提供了基于 Clean Architecture 的统一技术架构基础，内置完整的CQRS功能和高级企业级特性：
 
 ### 🏗️ Clean Architecture 分层架构
 
-1. **Domain Layer (企业业务规则层)**：分离的实体和聚合根基类、值对象、事件基类、仓库接口
-2. **Application Layer (应用业务规则层)**：标准化的命令、查询、处理器接口、应用服务接口
-3. **Adapters Layer (接口适配器层)**：仓库实现、应用服务实现、处理器实现
-4. **Frameworks & Drivers Layer (框架和驱动层)**：内置的CQRS框架、持久化驱动、消息驱动、外部服务驱动
-5. **Interfaces Layer (接口层)**：REST、GraphQL、gRPC接口实现、DTO实现
+1. **Domain Layer (企业业务规则层)**：
+   - ✅ 基础实体和聚合根基类 (`BaseEntity`, `BaseAggregateRoot`)
+   - ✅ 多租户感知实体和聚合根 (`TenantAwareEntity`, `OrganizationAwareEntity`, `DepartmentAwareEntity`)
+   - ✅ 值对象基类 (`EntityId`, `TenantId`, `OrganizationId`, `UserId`)
+   - ✅ 领域事件基类 (`DomainEvent`, `TenantEvent`, `OrganizationEvent`, `DepartmentEvent`)
+   - ✅ 仓库接口和规约模式接口
 
-### 🔧 核心功能
+2. **Application Layer (应用业务规则层)**：
+   - ✅ 命令、查询、事件处理器接口和基类
+   - ✅ 应用服务接口
+   - ✅ 用例实现框架
 
-1. **内置CQRS (Frameworks & Drivers层)**：完整的命令总线、查询总线、事件总线、事件存储技术实现
-2. **多租户支持 (Domain层)**：完整的租户上下文和数据隔离业务规则
-3. **多组织支持 (Domain层)**：组织级别的数据隔离和权限管理业务规则
-4. **AI集成 (Application层)**：标准化的AI服务抽象和集成接口
-5. **企业级功能 (Domain层)**：多部门、权限管理等企业级业务规则
+3. **Infrastructure Layer (基础设施层)**：
+   - ✅ 仓库实现和持久化组件
+   - ✅ 内置CQRS框架实现 (CommandBus, QueryBus, EventBus, EventStore)
+   - ✅ 事件投射器和读模型投射
+   - ✅ 数据库实体映射器和迁移脚本
+
+4. **Interfaces Layer (接口层)**：
+   - ✅ REST、GraphQL、gRPC接口基础
+   - ✅ 消息接口实现
+
+5. **Shared Layer (共享层)**：
+   - ✅ 通用类型和值对象基类
+   - ✅ 多租户工具类和装饰器
+   - ✅ 异步上下文管理
+   - ✅ 发布者模式支持
+   - ✅ Saga模式支持
+   - ✅ 增强RxJS操作符
+   - ✅ 中间件支持
+
+### 🔧 已实现的核心功能
+
+1. **✅ 内置CQRS + Event Sourcing**：
+   - 完整的命令总线、查询总线、事件总线、事件存储实现
+   - 支持多租户上下文验证
+   - 事件投射器和读模型支持
+
+2. **✅ 多租户架构支持**：
+   - 租户感知实体和聚合根
+   - 组织感知实体和聚合根
+   - 部门感知实体和聚合根
+   - 租户上下文工具类和数据过滤器
+   - 租户相关装饰器 (`@RequireTenant`, `@RequirePermission`, `@RequireOrganization`, `@RequireDepartment`)
+
+3. **✅ 高级企业级功能**：
+   - 异步上下文管理 (`AsyncContext`, `ContextProvider`, `ContextFactory`)
+   - 发布者模式 (`CommandPublisher`, `QueryPublisher`, `EventPublisher`)
+   - Saga模式支持 (`ISaga`, `SagaManager`, `@Saga`)
+   - 增强RxJS操作符 (`EnhancedOfTypeOperator`, `OperatorFactory`)
+   - 中间件支持 (`BaseMiddleware`, `MiddlewareChain`, `MiddlewareManager`)
+
+4. **✅ 持久化支持**：
+   - 数据库实体映射器
+   - 数据库迁移脚本
+   - 事件存储实现
+
+5. **✅ 工具类和装饰器**：
+   - CQRS装饰器 (`@CommandHandler`, `@QueryHandler`, `@EventHandler`)
+   - 租户验证装饰器
+   - 异常处理机制
 
 ### 🚀 核心价值
 
-- **Clean Architecture 合规**：严格遵循 Clean Architecture 分层原则，确保依赖方向正确
-- **完全控制**：内置CQRS功能位于 Frameworks & Drivers 层，完全控制其行为
-- **深度集成**：与多租户、多组织、AI能力深度集成，业务规则在 Domain 层
-- **架构统一**：所有业务领域模块基于相同的 Clean Architecture 分层架构
-- **职责分离**：实体和聚合根分开设计，各司其职，符合 DDD 原则
-- **代码复用**：通用功能集中管理，避免重复开发
-- **快速开发**：业务模块可以快速构建，专注于业务逻辑
-- **易于维护**：通用功能的升级和修复影响所有模块
-- **类型安全**：基于TypeScript的强类型支持
-- **标准化**：统一的命名规范、接口设计和实现模式
+- **✅ Clean Architecture 合规**：严格遵循 Clean Architecture 分层原则，依赖方向正确
+- **✅ 完全控制**：内置CQRS功能完全自主控制，与多租户深度集成
+- **✅ 企业级特性**：支持多租户、多组织、多部门、权限管理等企业级功能
+- **✅ 高级模式支持**：内置Saga、发布者、中间件、异步上下文等高级模式
+- **✅ 架构统一**：所有业务领域模块基于相同的架构基础
+- **✅ 职责分离**：实体和聚合根分开设计，符合DDD原则
+- **✅ 代码复用**：通用功能集中管理，避免重复开发
+- **✅ 快速开发**：业务模块可以快速构建，专注于业务逻辑
+- **✅ 易于维护**：通用功能的升级和修复影响所有模块
+- **✅ 类型安全**：基于TypeScript的强类型支持
+- **✅ 标准化**：统一的命名规范、接口设计和实现模式
 
-通过Core模块，所有业务领域模块都可以快速构建，确保 Clean Architecture 架构一致性和代码复用性，同时享受内置CQRS功能的强大能力。
+### 📊 实现状态
+
+| 功能模块 | 状态 | 完成度 |
+|---------|------|--------|
+| 领域层基础组件 | ✅ 已完成 | 100% |
+| 多租户感知实体/聚合根 | ✅ 已完成 | 100% |
+| 值对象和ID管理 | ✅ 已完成 | 100% |
+| 内置CQRS框架 | ✅ 已完成 | 100% |
+| 事件存储和投射器 | ✅ 已完成 | 100% |
+| 持久化组件 | ✅ 已完成 | 100% |
+| 租户工具和装饰器 | ✅ 已完成 | 100% |
+| 异步上下文管理 | ✅ 已完成 | 100% |
+| 发布者模式 | ✅ 已完成 | 100% |
+| Saga模式支持 | ✅ 已完成 | 100% |
+| 增强RxJS操作符 | ✅ 已完成 | 100% |
+| 中间件支持 | ✅ 已完成 | 100% |
+| AI集成组件 | ⏳ 待实现 | 0% |
+
+通过Core模块，所有业务领域模块都可以快速构建，确保 Clean Architecture 架构一致性和代码复用性，同时享受内置CQRS功能和高级企业级特性的强大能力。

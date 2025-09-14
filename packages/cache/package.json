@@ -1,0 +1,61 @@
+{
+  "name": "@aiofix/cache",
+  "version": "1.0.0",
+  "description": "Cache模块 - Aiofix-AI-SaaS平台的缓存管理库",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "require": "./src/index.ts",
+      "types": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "Aiofix Team",
+  "license": "MIT",
+  "dependencies": {
+    "@aiofix/config": "workspace:*",
+    "@aiofix/logging": "workspace:*",
+    "@nestjs/event-emitter": "^3.0.1",
+    "@nestjs/schedule": "^6.0.0",
+    "ioredis": "^5.7.0",
+    "minimatch": "^10.0.3",
+    "nestjs-cls": "^6.0.1",
+    "rxjs": "^7.8.2",
+    "uuid": "^13.0.0"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^11.1.6",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.11.0",
+    "@types/uuid": "^10.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.43.0",
+    "@typescript-eslint/parser": "^8.43.0",
+    "eslint": "^9.35.0",
+    "jest": "^30.1.3",
+    "ts-jest": "^29.4.1",
+    "typescript": "~5.9.2"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@nestjs/common": {
+      "optional": false
+    },
+    "@nestjs/core": {
+      "optional": false
+    }
+  }
+}

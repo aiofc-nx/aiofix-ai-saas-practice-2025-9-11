@@ -15,18 +15,18 @@ alwaysApply: true
 
 - 使用 `run_terminal_cmd` 工具时，应确保工作目录在 monorepo 根路径下:
 
-`/home/arligle/V1/Aiofix/aiofix-ai-saas-platform`
+`/home/arligle/aiofix-ai/aiofix-ai-saas-practice`
 
 - 然后再使用相对路径进入到子项目的目录下执行命令，示例：
 
 ```bash
-cd /home/arligle/V1/Aiofix/aiofix-ai-saas-platform && cd packages/auth && pnpm build
+cd /home/arligle/aiofix-ai/aiofix-ai-saas-practice && cd packages/auth && pnpm build
 ```
 
 或者，直接使用绝对路径，示例：
 
 ```bash
-cd /home/arligle/V1/Aiofix/aiofix-ai-saas-platform/packages/auth && pnpm build
+cd /home/arligle/aiofix-ai/aiofix-ai-saas-practice/packages/auth && pnpm build
 ```
 
 - 避免直接切换到子项目目录，确保命令执行的上下文正确性

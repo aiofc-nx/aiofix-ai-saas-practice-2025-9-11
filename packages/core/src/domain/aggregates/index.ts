@@ -10,3 +10,5 @@
 export { BaseAggregateRoot } from './base.aggregate-root';
 export type { DomainEvent } from './base.aggregate-root';
 export { TenantAwareAggregateRoot } from './tenant-aware.aggregate-root';
+export { OrganizationAwareAggregateRoot } from './organization-aware.aggregate-root';
+export { DepartmentAwareAggregateRoot } from './department-aware.aggregate-root';

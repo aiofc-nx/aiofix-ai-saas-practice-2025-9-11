@@ -9,3 +9,5 @@
 
 export { BaseEntity } from './base.entity';
 export { TenantAwareEntity } from './tenant-aware.entity';
+export { OrganizationAwareEntity } from './organization-aware.entity';
+export { DepartmentAwareEntity } from './department-aware.entity';

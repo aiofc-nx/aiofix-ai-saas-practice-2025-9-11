@@ -1,0 +1,123 @@
+services:
+  # PostgreSQL 数据库 - 主数据库（支持AI向量数据存储）
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: aiofix-postgres
+    environment:
+      POSTGRES_DB: aiofix_platform
+      POSTGRES_USER: aiofix_user
+      POSTGRES_PASSWORD: aiofix_password
+      POSTGRES_MULTIPLE_DATABASES: aiofix_tenant_1,aiofix_tenant_2,aiofix_tenant_3
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-multiple-databases.sh:/docker-entrypoint-initdb.d/01-init-multiple-databases.sh
+      - ./scripts/init-table-level-isolation.sh:/docker-entrypoint-initdb.d/02-init-table-level-isolation.sh
+      - ./scripts/init-ai-vectors.sh:/docker-entrypoint-initdb.d/03-init-ai-vectors.sh
+    networks:
+      - aiofix-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U aiofix_user -d aiofix_platform']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB 数据库 - 事件存储和文档存储
+  mongodb:
+    image: mongo:7.0
+    container_name: aiofix-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: aiofix_admin
+      MONGO_INITDB_ROOT_PASSWORD: aiofix_password
+      MONGO_INITDB_DATABASE: aiofix_events
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongodb_data:/data/db
+      - ./scripts/init-mongodb.js:/docker-entrypoint-initdb.d/init-mongodb.js
+    networks:
+      - aiofix-network
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis - 缓存和消息队列
+  redis:
+    image: redis:7.2-alpine
+    container_name: aiofix-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - aiofix-network
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Commander - Redis 管理界面
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: aiofix-redis-commander
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - '8081:8081'
+    depends_on:
+      - redis
+    networks:
+      - aiofix-network
+
+  # pgAdmin - PostgreSQL 管理界面
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: aiofix-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@aiofix.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - '8080:80'
+    depends_on:
+      - postgres
+    networks:
+      - aiofix-network
+
+  # MongoDB Express - MongoDB 管理界面
+  mongo-express:
+    image: mongo-express:latest
+    container_name: aiofix-mongo-express
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: aiofix_admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: aiofix_password
+      ME_CONFIG_MONGODB_URL: mongodb://aiofix_admin:aiofix_password@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin123
+    ports:
+      - '8082:8081'
+    depends_on:
+      - mongodb
+    networks:
+      - aiofix-network
+
+volumes:
+  postgres_data:
+    driver: local
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  aiofix-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
